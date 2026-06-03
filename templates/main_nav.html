@@ -1,0 +1,17 @@
+<nav class="main-nav">
+    <div class="nav-logo">
+        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="CoralKita Logo">
+        <div class="nav-brand">CoralKita</div>
+    </div>
+    <div class="nav-right">
+        <div class="nav-user">
+            <div class="nav-avatar" id="nav-avatar">{{ user_initials}}</div>
+            <div class="nav-name" id="nav-name">{{ user_name }}</div>
+            <div class="nav-role" id="nav-role">{{ user_role }}</div>
+        </div>
+        <a class="logout-btn" href="{{ url_for('login.logout') }}" onclick="return confirmLogout(event)">
+            <span>⏻</span> Logout
+        </a>
+    </div>
+</nav>
+{% include 'modals.html' %}

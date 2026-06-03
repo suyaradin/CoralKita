@@ -1,0 +1,32 @@
+# Virtual environments
+.env
+.venv/
+.venv311/
+venv/
+venv311/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Sensitive files / API keys
+credential.json
+credentials.json
+crw.json
+token.json
+.env
+*.env
+
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log

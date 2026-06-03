@@ -1,0 +1,193 @@
+<div class="overview active" id="{{ roleID }}-overview">
+    <div class="overview-header">
+        <div class="overview-title">Welcome back, {{ user_name.split()[0] }}!</div>
+        <div class="overview-subtitle">Here is what's happening with your coral monitoring today</div>
+    </div>
+
+    <div class="status-metrics">
+        {% if roleID == 1 %}
+        <div class="status-card">
+            <div class="status-number" id="totalCorals">{{ counts.approved_submissions }}</div>
+            <div class="status-label">Total Coral Records</div>
+        </div>
+        <div class="status-card">
+            <div class="status-number" id="pendingReview">{{ counts.pending_review }}</div>
+            <div class="status-label">Pending Review Corals</div>
+        </div>
+        <div class="status-card">
+            <div class="status-number" id="bleachingRisk">{{ counts.bleaching_risk }}</div>
+            <div class="status-label">Bleaching Risk Corals</div>
+        </div>
+        <div class="status-card">
+            <div class="status-number" id="criticallyEndangered">{{ counts.critically_endangered }}</div>
+            <div class="status-label">Critically Endangered Corals</div>
+        </div>
+        {% elif roleID == 2 %}
+        <div class="status-card">
+            <div class="status-number" id="totalCorals">{{ counts.my_total if counts and counts.my_total is defined else (corals|length if corals else 0) }}</div>
+            <div class="status-label">Total Corals Monitored</div>
+        </div>
+        <div class="status-card">
+            <div class="status-number" id="pendingSubmissions">{{ counts.my_pending if counts and counts.my_pending is defined else 0 }}</div>
+            <div class="status-label">Pending Submissions</div>
+        </div>
+        <div class="status-card">
+            <div class="status-number" id="approvedSubmissions">{{ counts.my_approved if counts and counts.my_approved is defined else 0 }}</div>
+            <div class="status-label">Approved Submissions</div>
+        </div>
+        <div class="status-card">
+            <div class="status-number" id="rejectedSubmissions">{{ counts.my_rejected if counts and counts.my_rejected is defined else 0 }}</div>
+            <div class="status-label">Rejected Submissions</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="recent-submission" id="recent-submission">
+        <div class="recent-submission-header">
+            <div class="content-title">Recent Coral Submission</div>
+        </div>
+        <div class="recent-submission-content">
+            {% if corals and corals|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Coral</th>
+                        <th>Region</th>
+                        <th class="col-health">Health Status</th>
+                        <th>Confidence</th>
+                        <th>Submitted Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coral in corals %}
+                    <tr>
+                        <td>{{ coral.coralID }}</td>
+                        <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
+                        <td>{{ coral.regionName }}</td>
+                        <td class="col-health">
+                            {% if coral.healthName %}
+                                <span class="badge badge-{{ coral.healthName|lower|replace(' ','')|replace('-','') }}">{{ coral.healthName }}</span>
+                            {% else %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                                    {% if coral.confidenceScore %}
+                                    <div class="mono-small">{{ (coral.confidenceScore * 100)|int }}%</div>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill"
+                                            style="width:{{ (coral.confidenceScore * 100)|int }}%"></div>
+                                    </div>
+                                    {% else %}
+                                    —
+                                    {% endif %}
+                                </td>
+                        <td>{{ coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
+                        <td>
+                            {% if coral.reviewStatus %}
+                                <span class="status-badge status-{{ coral.reviewStatus }}">
+                                    {{ coral.reviewStatus|title }}
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-title">No coral submissions yet</div>
+                <div class="empty-state-text">
+                    {% if roleID == 1 %}
+                        No coral submissions waiting for review.
+                    {% elif roleID == 2 %}
+                        You haven't submitted any corals yet.<br>
+                        Click "Upload Coral" to get started!
+                    {% else %}
+                        No approved corals available at the moment.
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="sst-monitor" id="sst-monitor">
+        <div class="sst-monitor-header">
+            <div class="content-title">Sea Surface Temperature Monitoring</div>
+        </div>
+        <div class="sst-monitor-content">
+            <div class="sst-temperature" id="sst-temperature">--°C</div>
+            <span class="sst-status" id="sst-alert-badge" style="display:none;">Bleaching Alert</span>
+            <div class="sst-retrieved" id="sst-timestamp">Retrieving...</div>
+        </div>
+        <div class="dhw-monitor-header">
+            <div class="content-title">Degree Heating Week</div>
+            <div class="content-subtitle">Amount of accumulated heat stress that coral reefs are exposed to over a 12-week period</div>
+        </div>
+        <div class="dhw-monitor-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Heat Accumulation (Day)</th>
+                        <th>DHW (°C-weeks)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="dhw-table-body">
+                    <tr><td colspan="4">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="input-box">
+            <div class="content-title">Sea Surface Temperature Map</div>
+            <div class="content-subtitle">Source: NOAA Coral Reef Watch</div>
+            <select class="form-select" id="island" name="island-selection">
+                <option value="1">Pulau Redang</option>
+                <option value="2">Pulau Bidong</option>
+                <option value="3">Pulau Perhentian</option>
+                <option value="4">Pulau Kapas</option>
+            </select>
+        </div>
+        <div class="sst-map-content">
+            <div id="sst-map-container" style="width:100%; height:400px; border-radius:10px;"></div>
+            <div style="margin-top:12px;">
+                <div class="content-subtitle">Bleaching Alert Scale</div>
+                <div class="dhw-monitor-content">
+                <table>
+                    <tr>
+                        <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#4ade80;margin-right:6px;"></span></td>
+                        <td>Hotspot <= 0</td>
+                        <td>No Stress</td>
+                    </tr>
+                    <tr>
+                        <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#facc15;margin-right:6px;"></span></td>
+                        <td>0 < Hotspot < 1</td>
+                        <td>Bleaching Watch</td>
+                    </tr>
+                    <tr>
+                        <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f97316;margin-right:6px;"></span></td>
+                        <td>1 <= Hotspot & 0 < DHW < 4</td>
+                        <td>Bleaching Warning</td>
+                    </tr>
+                    <tr>
+                        <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;margin-right:6px;"></span></td>
+                        <td> 1 <= Hotspot & 4 <= DHW < 8</td>
+                        <td>Alert Level 1</td>
+                    </tr>
+                    <tr>
+                        <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#7f1d1d;margin-right:6px;"></span></td>
+                        <td>1 <= Hotspot & 8 <= DHW < 12</td>
+                        <td>Alert Level 2</td>
+                    </tr>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

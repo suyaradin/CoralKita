@@ -1,0 +1,80 @@
+<div class="sidebar">
+    {% if roleID == 1 %}
+    <div class="sidebar-section">
+        <div class="sidebar-label">Overview</div>
+        <a class="sidebar-item{% if active_section == 'overview' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='overview') }}">
+            <span class="sidebar-icon">◈</span> Dashboard
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-label">Coral Management</div>
+        <a class="sidebar-item{% if active_section == 'pending_review' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='pending_review') }}">
+            <span class="sidebar-icon">◉</span> Pending Review
+            <span class="sidebar-badge">{{ counts.pending_review or 0 }}</span>
+        </a>
+        <a class="sidebar-item{% if active_section == 'coral_library' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='coral_library') }}">
+            <span class="sidebar-icon">◉</span> Coral Library
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-label">System Settings</div>
+        <a class="sidebar-item{% if active_section == 'my_profile' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='my_profile') }}">
+            <span class="sidebar-icon">◉</span> My Profile
+        </a>
+        <a class="sidebar-item{% if active_section == 'user_management' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='user_management') }}">
+            <span class="sidebar-icon">◉</span> User Management
+        </a>
+    </div>
+    {% endif %}
+
+    {% if roleID == 2 %}
+    <div class="sidebar-section">
+        <div class="sidebar-label">Overview</div>
+        <a class="sidebar-item{% if active_section == 'overview' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='overview') }}">
+            <span class="sidebar-icon">◈</span> Dashboard
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-label">Coral Management</div>
+        <a class="sidebar-item{% if active_section == 'upload_coral' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='upload_coral') }}">
+            <span class="sidebar-icon">⊕</span> Upload Coral
+        </a>
+        <a class="sidebar-item{% if active_section == 'my_coral_library' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='my_coral_library') }}">
+            <span class="sidebar-icon">◫</span> My Coral Library
+        </a>
+        <a class="sidebar-item{% if active_section == 'health_log' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='health_log') }}">
+            <span class="sidebar-icon">◎</span> Health Log
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-label">System Settings</div>
+        <a class="sidebar-item{% if active_section == 'my_profile' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='my_profile') }}">
+            <span class="sidebar-icon">◉</span> My Profile
+        </a>
+    </div>
+    {% endif %}
+
+    {% if roleID == 3 %}
+    <div class="sidebar-section">
+        <div class="sidebar-label">Overview</div>
+        <a class="sidebar-item{% if active_section == 'overview' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='overview') }}">
+            <span class="sidebar-icon">◈</span> Dashboard
+        </a>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-label">System Settings</div>
+        <a class="sidebar-item{% if active_section == 'my_profile' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='my_profile') }}">
+            <span class="sidebar-icon">◉</span> My Profile
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="sidebar-footer">
+        <div class="footer-text">© 2026 CoralKita by Soraya</div>
+    </div>
+</div>

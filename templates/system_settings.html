@@ -1,0 +1,128 @@
+<div class="system-settings">
+    {% if active_section in ['settings', 'my_profile'] %}
+    <div class="user-profile-card">
+        <div class="system-settings-title">My Profile</div><br>
+    <div class="user-profile-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        <div class="profile-header">
+            <div class="profile-avatar" id="profile-panel-avatar">{{ user_initials }}</div>
+            <div>
+                <div class="profile-name" id="profile-display-name">{{ user_name }}</div>
+                <div class="profile-role" id="profile-display-role">{{ user_role_name }}</div>
+                <div class="profile-email" id="profile-display-email">{{ user_email }}</div>
+            </div>
+        </div>
+        <div class="divider"></div>
+
+        <!-- Compact profile card: reuse input-form/form-box to match register/login size -->
+        <div class="input-form">
+            <div class="form-box">
+                <form class="profile-form" action="{{ url_for('dashboard.update_profile') }}" method="POST">
+                    <div class="profile-form-box">
+                        <div class="input-box">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" id="name" name="name" class="form-control" value="{{ user_name }}"
+                                autocomplete="name">
+                        </div>
+                        <div class="input-box">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" value="{{ user_email }}"
+                                autocomplete="email">
+                        </div>
+                        <div class="input-box password-box">
+                            <label for="password" class="form-label">New Password</label>
+                            <div class="password-field-wrap">
+                                <input type="password" id="password" name="password" class="form-control"
+                                    placeholder="Leave blank to keep current password" autocomplete="new-password">
+                                <button type="button" class="show-password-toggle" data-target="password" aria-label="Show password">👁</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="form-btn" id="profile-submit-btn">Update Profile</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+    {% if roleID == 1 and active_section == 'user_management' %}
+    <div class="user-management">
+            <div class="system-settings-title">User Management</div>
+        </div>
+        <div class="user-management-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div class="input-form" style="margin-bottom: 1rem;">
+                <div class="form-box">
+                    <form id="create-reviewer-form" action="{{ url_for('dashboard.create_scientific_reviewer') }}" method="POST" onsubmit="return validateReviewerForm(event)">
+                        <div class="system-settings-title" style="margin-bottom: 0.75rem;">Add Scientific Reviewer</div>
+                        <div id="reviewer-form-error" class="alert alert-error" style="display:none;"></div>
+                        <div class="profile-form-box">
+                            <div class="input-box">
+                                <label for="reviewer-name" class="form-label">Full Name</label>
+                                <input type="text" id="reviewer-name" name="name" class="form-control" required>
+                            </div>
+                            <div class="input-box">
+                                <label for="reviewer-email" class="form-label">Email</label>
+                                <input type="email" id="reviewer-email" name="email" class="form-control" required>
+                            </div>
+                            <div class="input-box password-box">
+                                <label for="reviewer-password" class="form-label">Password</label>
+                                <div class="password-field-wrap">
+                                    <input type="password" id="reviewer-password" name="password" class="form-control" required autocomplete="new-password">
+                                    <button type="button" class="show-password-toggle" data-target="reviewer-password" aria-label="Show password">👁</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="form-btn">Add Scientific Reviewer</button>
+                    </form>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="user-searchbar">
+                <input type="text" id="user-search" class="form-control" placeholder="Search by name or role"
+                    oninput="searchUser(this.value)">
+            </div>
+            <div class="user-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body">
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.userID }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.roleName }}</td>
+                            <td>
+                                <button type="button" class="form-btn" onclick="deleteUser({{ user.userID }})">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+    {% endif %}
+</div>

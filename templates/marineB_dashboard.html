@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoralKita - Marine Biologist Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
+</head>
+
+<body>
+    {% include 'main_nav.html' %}
+
+    <div class="sidebar-wrapper">
+        {% include 'side_nav.html' %}
+    </div>
+
+    <div class="main-content">
+        <div id="section-overview" class="content-panel{% if active_section == 'overview' %} active{% endif %}">
+            {% include 'dashboard_overview.html' %}
+        </div>
+        <div id="section-coral" class="content-panel{% if active_section in ['upload_coral', 'my_coral_library', 'health_log'] %} active{% endif %}">
+            {% include 'coral_management.html' %}
+        </div>
+        <div id="section-settings" class="content-panel{% if active_section in ['settings','my_profile','user_management'] %} active{% endif %}">
+            {% include 'system_settings.html' %}
+        </div>
+    </div>
+        <!-- Mapbox token - MUST be before mapbox-gl.js -->
+    <script>
+        const MAPBOX_TOKEN = '{{ mapbox_token or MAPBOX_TOKEN }}';
+        console.log('Mapbox token loaded:', !!MAPBOX_TOKEN);
+    </script>
+    
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

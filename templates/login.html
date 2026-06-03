@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoralKita - Login Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="h2">Log In</div>
+        <div class="h3">Access your monitoring dashboard</div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form class="input-form" action="{{ url_for('login.login') }}" method="POST">
+            <div class="form-box">
+                <div class="input-box">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="jane@gmail.com" value="{{ request.form.get('email', '') }}" required>
+                </div>
+                <div class="input-box password-box">
+                    <label for="password">Password</label>
+                    <div class="password-field-wrap">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+                        <button type="button" class="show-password-toggle" data-target="password" aria-label="Show password">👁</button>
+                    </div>
+                </div>
+                <!-- Forgot password link is placed after the login form to avoid nested forms -->
+                <button type="submit" class="form-btn">Log In</button>
+            </div>
+        </form>
+        <div class="redirect-link">Don't have an account? <a href="{{ url_for('register.register') }}">Register here</a></div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

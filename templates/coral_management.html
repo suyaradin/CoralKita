@@ -1,0 +1,434 @@
+<!-- coral_management.html - HTML Structure Only -->
+<div class="coral-management">
+    <!-- ============================================================ -->
+    <!-- SCIENTIFIC REVIEWER SECTIONS (roleID == 1) -->
+    <!-- ============================================================ -->
+    {% if roleID == 1 %}
+        <!-- PENDING REVIEW SECTION -->
+        {% if active_section == 'pending_review' %}
+        <div class="pending-review">
+            <div class="coral-management-title">Pending Review</div>
+        </div>
+        <div class="pending-review-content">
+            {% if corals and corals|selectattr('reviewStatus', 'equalto', 'pending')|list|length > 0 %}
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Coral</th>
+                        <th>Region</th>
+                        <th class="col-health">Health Status</th>
+                        <th>Confidence</th>
+                        <th>Submitted Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coral in corals %}
+                    {% if coral.reviewStatus == 'pending' %}
+                    <tr data-coral-id="{{ coral.coralID }}" data-review-id="{{ coral.reviewID }}">
+                        <td>{{ coral.coralID }}</td>
+                        <td>
+                            {% if coral.imagePath %}
+                            <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" 
+                                 alt="Coral image" width="50" class="coral-thumbnail"
+                                 data-image-path="{{ coral.imagePath }}">
+                            {% else %}
+                            <div class="no-image">No image</div>
+                            {% endif %}
+                        </td>
+                        <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
+                        <td>{{ coral.regionName }}</td>
+                        <td class="col-health">
+                            {% if coral.healthName %}
+                                <span class="badge badge-{{ coral.healthName|lower|replace(' ','')|replace('-','') }}">{{ coral.healthName }}</span>
+                            {% else %}
+                                <span class="badge badge-pending">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                                    {% if coral.confidenceScore %}
+                                    <div class="mono-small">{{ (coral.confidenceScore * 100)|int }}%</div>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill"
+                                            style="width:{{ (coral.confidenceScore * 100)|int }}%"></div>
+                                    </div>
+                                    {% else %}
+                                    —
+                                    {% endif %}
+                                </td>
+                        <td>{{ coral.uploadDate.strftime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
+                        <td class="col-actions">
+                            <div class="action-buttons">
+                                <button class="btn-approve"
+                                    data-review-id="{{ coral.reviewID }}"
+                                    data-existing-iucn-id="{{ coral.existingIucnID if coral.existingIucnID else '' }}">✓ Approve</button>
+                                <button class="btn-reject" data-review-id="{{ coral.reviewID }}">✗ Reject</button>
+                                <button class="btn-view" data-coral-id="{{ coral.coralID }}">👁 View</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-title">No Pending Reviews</div>
+                <div class="empty-state-text">All coral submissions have been reviewed. Great work!</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- CORAL LIBRARY SECTION (Scientific Reviewer) -->
+        {% if active_section == 'coral_library' %}
+        <div class="coral-library">
+            <div class="coral-management-title">Coral Library</div>
+        </div>
+        <div class="coral-library-content">
+            {% if corals and corals|length > 0 %}
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Scientific Name</th>
+                        <th>Region</th>
+                        <th class="col-health">Health Status</th>
+                        <th>Confidence</th>
+                        <th>Submitted By</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coral in corals %}
+                    <tr data-coral-id="{{ coral.coralID }}">
+                        <td>{{ coral.coralID }}</td>
+                        <td>
+                            {% if coral.imagePath %}
+                            <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" 
+                                 alt="{{ coral.species }}" width="60" class="coral-thumbnail"
+                                 data-image-path="{{ coral.imagePath }}">
+                            {% else %}
+                            <div class="no-image">No image</div>
+                            {% endif %}
+                        </td>
+                        <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
+                        <td>{{ coral.regionName }}</td>
+                        <td class="col-health">
+                            {% if coral.healthName %}
+                                <span class="badge badge-{{ coral.healthName|lower|replace(' ','')|replace('-','') }}">{{ coral.healthName }}</span>
+                            {% else %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                                    {% if coral.confidenceScore %}
+                                    <div class="mono-small">{{ (coral.confidenceScore * 100)|int }}%</div>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill"
+                                            style="width:{{ (coral.confidenceScore * 100)|int }}%"></div>
+                                    </div>
+                                    {% else %}
+                                    —
+                                    {% endif %}
+                                </td>
+                        <td>{{ coral.submittedBy }}</td>
+                        <td>
+                            {% if coral.reviewStatus %}
+                                <span class="status-badge status-{{ coral.reviewStatus }}">{{ coral.reviewStatus|title }}</span>
+                            {% else %}
+                                <span class="status-badge status-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="col-actions">
+                            <div class="action-buttons">
+                                <button class="btn-view" data-coral-id="{{ coral.coralID }}">View Details</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-title">No Corals in Library</div>
+                <div class="empty-state-text">No coral submissions have been added to the library yet.</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- ============================================================ -->
+    <!-- MARINE BIOLOGIST SECTIONS (roleID == 2) -->
+    <!-- ============================================================ -->
+    {% if roleID == 2 %}
+        <!-- UPLOAD CORAL SECTION -->
+        {% if active_section == 'upload_coral' %}
+        <div class="upload-coral">
+            <div class="upload-coral-header">
+                <div class="coral-management-title">Upload Coral Submission</div>
+            </div>
+            <div class="upload-coral-content">
+            <form method="POST" enctype="multipart/form-data" 
+                  action="{{ url_for('coral.submit_coral') }}" id="coralUploadForm">
+                <input type="hidden" id="originalCoralID" name="originalCoralID" value="{{ prefillCoral.coralID if prefillCoral else '' }}">
+            <div class="upload-coral-grid">
+                <div class="batch-upload-panel">
+                    <div class="batch-upload-area" id="batchUploadArea">
+                        <div class="empty-state-title">Coral Image Upload</div>
+                        <div class="empty-state-text">Drag and drop a coral image here<br>or click to select a file</div>
+                        <input type="file" id="batchFileInput" name="coral_image" accept="image/*" required style="display: none;">
+                        <button type="button" class="form-btn" id="batchUploadBtn">Select Image</button>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                </div>
+                <div class="biological-info-panel">
+                    
+                        <div class="image-upload">
+                            <div class="input-box">
+                                <label class="form-label">Genus *</label>
+                                <input type="text" id="genus" name="genus" class="form-control"
+                                       placeholder="e.g., Acropora" value="{{ prefillCoral.genus if prefillCoral else '' }}" required>
+                            </div>
+                            
+                            <div class="input-box">
+                                <label class="form-label">Species *</label>
+                                <input type="text" id="species" name="species" class="form-control"
+                                       placeholder="e.g., Muricata" value="{{ prefillCoral.species if prefillCoral else '' }}" required>
+                            </div>
+                            
+                            <div class="input-box">
+                                <label class="form-label">Location *</label>
+                                <select class="form-select" id="regionID" name="regionID" required>
+                                    <option value="">Select Island</option>
+                                    <option value="1"{% if prefillCoral and prefillCoral.regionID == 1 %} selected{% endif %}>Pulau Redang</option>
+                                    <option value="2"{% if prefillCoral and prefillCoral.regionID == 2 %} selected{% endif %}>Pulau Bidong</option>
+                                    <option value="3"{% if prefillCoral and prefillCoral.regionID == 3 %} selected{% endif %}>Pulau Perhentian</option>
+                                    <option value="4"{% if prefillCoral and prefillCoral.regionID == 4 %} selected{% endif %}>Pulau Kapas</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-box">
+                                <label class="form-label">Growth Form</label>
+                                <select class="form-select" id="growthFormID" name="growthFormID">
+                                    <option value="1"{% if prefillCoral and prefillCoral.growthFormID == 1 %} selected{% endif %}>Branching</option>
+                                    <option value="2"{% if prefillCoral and prefillCoral.growthFormID == 2 %} selected{% endif %}>Massive</option>
+                                    <option value="3"{% if prefillCoral and prefillCoral.growthFormID == 3 %} selected{% endif %}>Encrusting</option>
+                                    <option value="4"{% if prefillCoral and prefillCoral.growthFormID == 4 %} selected{% endif %}>Plating</option>
+                                    <option value="5"{% if prefillCoral and prefillCoral.growthFormID == 5 %} selected{% endif %}>Foliose</option>
+                                    <option value="6"{% if prefillCoral and prefillCoral.growthFormID == 6 %} selected{% endif %}>Free-living</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-box">
+                                <label class="form-label">Minimum Temperature (°C) *</label>
+                                <input type="number" step="0.1" id="waterTempMin" name="waterTempMin" 
+                                       class="form-control" placeholder="e.g., 24.0" value="{{ prefillCoral.waterTempMin if prefillCoral else '' }}" required>
+                            </div>
+                            
+                            <div class="input-box">
+                                <label class="form-label">Maximum Temperature (°C) *</label>
+                                <input type="number" step="0.1" id="waterTempMax" name="waterTempMax" 
+                                       class="form-control" placeholder="e.g., 29.5" value="{{ prefillCoral.waterTempMax if prefillCoral else '' }}" required>
+                            </div>
+                            
+                            <div class="input-box">
+                                <label class="form-label">Minimum pH *</label>
+                                <input type="number" step="0.01" id="pHMin" name="pHMin" 
+                                       class="form-control" placeholder="e.g., 8.0" value="{{ prefillCoral.pHMin if prefillCoral else '' }}" required>
+                            </div>
+                            
+                            <div class="input-box">
+                                <label class="form-label">Maximum pH *</label>
+                                <input type="number" step="0.01" id="pHMax" name="pHMax" 
+                                       class="form-control" placeholder="e.g., 8.4" value="{{ prefillCoral.pHMax if prefillCoral else '' }}" required>
+                            </div>
+                            
+                            <div class="upload-progress" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="form-btn">Submit for Review</button>
+                        </div>
+                    
+                </div>
+            </div>
+            </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- MY CORAL LIBRARY SECTION (Marine Biologist) -->
+        {% if active_section == 'my_coral_library' %}
+        <div class="coral-library">
+            <div class="coral-management-title">My Coral Library</div>
+        </div>
+        <div class="coral-library-content">
+            {% if corals and corals|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Coral Name</th>
+                        <th>Location</th>
+                        <th class="col-health">Health Status</th>
+                        <th>Submitted Date</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coral in corals %}
+                    <tr data-coral-id="{{ coral.coralID }}">
+                        <td>{{ coral.coralID }}</td>
+                        <td>
+                            {% if coral.imagePath %}
+                            <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" 
+                                 width="50" class="coral-thumbnail"
+                                 data-image-path="{{ coral.imagePath }}">
+                            {% else %}
+                            <div class="no-image">No image</div>
+                            {% endif %}
+                        </td>
+                        <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
+                        <td>{{ coral.regionName }}</td>
+                        <td class="col-health">
+                            {% if coral.healthName %}
+                                <span class="badge badge-{{ coral.healthName|lower|replace(' ','')|replace('-','') }}">{{ coral.healthName }}</span>
+                            {% else %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
+                        <td>
+                            {% if coral.reviewStatus %}
+                                <span class="status-badge status-{{ coral.reviewStatus }}">{{ coral.reviewStatus|title }}</span>
+                            {% else %}
+                                <span class="status-badge status-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="col-actions">
+                            <div class="action-buttons">
+                                <button class="btn-view" data-coral-id="{{ coral.coralID }}">View Details</button>
+                                {% if coral.reviewStatus == 'approved' %}
+                                <button class="btn-health-log" data-coral-id="{{ coral.coralID }}">+ Add Health Log</button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-title">Your Library is Empty</div>
+                <div class="empty-state-text">
+                    You haven't submitted any corals yet.<br>
+                    Click "Upload Coral" to add your first submission!
+                </div>
+                <button class="form-btn upload-coral-btn" style="margin-top: 20px;">+ Upload Your First Coral</button>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- HEALTH LOG SECTION (Marine Biologist) -->
+        {% if active_section == 'health_log' %}
+        <div class="health-log">
+            <div class="health-log-header">
+                <div class="coral-management-title">Coral Health Status Log</div>
+            </div>
+            <div class="health-log-content">
+            {% if corals and corals|length > 0 %}
+                {% for coral in corals %}
+                <div class="log-timeline" data-coral-id="{{ coral.coralID }}">
+                    <div class="log-header">
+                        <h3>{{ coral.genus }} {{ coral.species }}</h3>
+                        <div>Location: {{ coral.regionName }}</div>
+                    </div>
+                    
+                    <div class="timeline-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ coral.submissionCount or 1 }}</div>
+                            <div class="stat-label">Total Submissions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">
+                                {{ coral.healthName if coral.healthName else 'Pending' }}
+                            </div>
+                            <div class="stat-label">Current Status</div>
+                        </div>
+                        <div class="stat-item">
+                        <div class="stat-value">{{ coral.uploadDate.strftime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</div>
+                            <div class="stat-label">Last Updated</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-wrapper">
+                        {% if coral.logs and coral.logs|length > 0 %}
+                            {% for log in coral.logs %}
+                            <div class="timeline-item">
+                                <div class="timeline-date">{{ log.uploadDate.strftime('%Y-%m-%d %H:%M') if log.uploadDate else log.submittedAt.strftime('%Y-%m-%d %H:%M') if log.submittedAt else '-' }}</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">{% if loop.first %}Latest Submission{% else %}Past Submission{% endif %}</div>
+                                    <div class="timeline-status">
+                                        {% if log.healthName %}
+                                            <span class="badge badge-{{ log.healthName|lower|replace(' ','')|replace('-','') }}">{{ log.healthName }}</span>
+                                        {% else %}
+                                            <span class="badge badge-pending">Pending Review</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if log.reviewStatus %}
+                                    <div class="timeline-reviewer">Review Status: {{ log.reviewStatus|title }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="timeline-item">
+                                <div class="timeline-date">{{ coral.uploadDate.strftime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Latest Submission</div>
+                                    <div class="timeline-status">
+                                        {% if coral.healthName %}
+                                            <span class="badge badge-{{ coral.healthName|lower|replace(' ','')|replace('-','') }}">{{ coral.healthName }}</span>
+                                        {% else %}
+                                            <span class="badge badge-pending">Pending Review</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if coral.reviewStatus %}
+                                    <div class="timeline-reviewer">Review Status: {{ coral.reviewStatus|title }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-title">No Health Logs Available</div>
+                <div class="empty-state-text">
+                    You don't have any coral submissions yet.<br>
+                    Upload a coral to start tracking its health!
+                </div>
+                <button class="form-btn upload-coral-btn" style="margin-top: 20px;">+ Upload Coral</button>
+            </div>
+            {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>

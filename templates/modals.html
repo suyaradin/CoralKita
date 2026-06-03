@@ -1,0 +1,142 @@
+<!-- modals.html - All Modal Dialogs -->
+<div id="app-toast-container" class="toast-container" style="display:none;"></div>
+
+<div id="appMessageModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div id="app-modal-icon" class="app-modal-icon info">i</div>
+                <h2 id="app-modal-title">Notification</h2>
+            </div>
+            <button class="modal-close" id="closeAppMessageModalBtn">&times;</button>
+        </div>
+        <div class="modal-body app-modal-body" id="app-modal-body">
+            <!-- Message content inserted here -->
+        </div>
+    </div>
+</div>
+
+<div id="appConfirmModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div id="app-confirm-icon" class="app-modal-icon warning">!</div>
+                <h2 id="app-confirm-title">Please confirm</h2>
+            </div>
+            <button class="modal-close" id="closeAppConfirmModalBtn">&times;</button>
+        </div>
+        <div class="modal-body app-modal-body" id="app-confirm-body">
+            <!-- Confirmation text inserted here -->
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end; gap: 0.75rem;">
+            <button class="btn-ghost" id="app-confirm-cancel-btn">Cancel</button>
+            <button class="btn-primary" id="app-confirm-ok-btn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h2>Coral Image</h2>
+            <button class="modal-close" id="closeImageModalBtn">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <img id="fullImage" src="" alt="Full size coral image" style="max-width: 100%; border-radius: 8px;">
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div id="rejectModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Reject Submission</h2>
+            <button class="modal-close" id="closeRejectModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <label class="form-label">Reason for rejection:</label>
+            <textarea id="rejectReason" rows="4" class="form-control" placeholder="Please provide reason for rejection..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-reject" id="confirmRejectBtn">Submit Rejection</button>
+            <button class="btn-ghost" id="cancelRejectBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Submission Modal -->
+<div id="viewSubmissionModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>Coral Submission Details</h2>
+            <button class="modal-close" id="closeViewModalBtn">&times;</button>
+        </div>
+        <div class="modal-body" id="submissionDetails">
+            <!-- Dynamic content loaded via JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Health Log Modal -->
+<div id="healthLogModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>Add Health Log</h2>
+            <button class="modal-close" id="closeHealthLogModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="healthLogForm">
+                <input type="hidden" id="healthLogCoralID">
+                <div class="input-box">
+                    <label class="form-label">Health Status</label>
+                    <select id="healthStatus" class="form-select" required>
+                        <option value="1">Healthy</option>
+                        <option value="2">Stressed</option>
+                        <option value="3">Bleaching</option>
+                        <option value="4">Dead</option>
+                    </select>
+                </div>
+                <div class="input-box">
+                    <label class="form-label">Observation Date</label>
+                    <input type="date" id="observationDate" class="form-control" required>
+                </div>
+                <div class="input-box">
+                    <label class="form-label">Notes</label>
+                    <textarea id="healthNotes" rows="3" class="form-control" placeholder="Additional observations..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-approve" id="submitHealthLogBtn">Submit Health Log</button>
+            <button class="btn-ghost" id="cancelHealthLogBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Review Modal -->
+<div id="approveReviewModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+            <h2>Approve Review</h2>
+            <button class="modal-close" id="closeApproveModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Select IUCN for first-time coral approval. For health-log updates, existing IUCN will be reused automatically.</p>
+            <div class="input-box">
+                <label class="form-label">IUCN Status</label>
+                <select id="approveIucnSelect" class="form-select">
+                    <option value="">Select IUCN status</option>
+                    {% for status in iucn_statuses %}
+                    <option value="{{ status.iucnID }}">{{ status.iucnName }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="form-btn" id="confirmApproveBtn">Approve</button>
+            <button class="btn-ghost" id="cancelApproveBtn">Cancel</button>
+        </div>
+    </div>
+</div>
