@@ -60,7 +60,7 @@
                                         —
                                         {% endif %}
                                     </td>
-                                    <td>{{ coral.uploadDate.mytime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.mytime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
+                                    <td>{{ coral.uploadDate.strftime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
                                     <td class="col-actions">
                                         <div class="action-buttons">
                                             <button type="button" class="square-submit-btn btn-approve"
@@ -310,7 +310,7 @@
                                             <span class="badge badge-pending">Pending</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ coral.submittedAt.mytime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
+                                    <td>{{ coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
                                     <td>
                                         {% if coral.reviewStatus %}
                                             <span class="status-badge status-{{ coral.reviewStatus }}">{{ coral.reviewStatus|title }}</span>
@@ -371,7 +371,7 @@
                                     <div class="stat-label">Current Status</div>
                                 </div>
                                 <div class="stat-item">
-                                    <div class="stat-value">{{ coral.uploadDate.mytime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.mytime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</div>
+                                    <div class="stat-value">{{ coral.uploadDate.strftime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</div>
                                     <div class="stat-label">Last Updated</div>
                                 </div>
                             </div>
@@ -380,7 +380,7 @@
                                 {% if coral.logs and coral.logs|length > 0 %}
                                     {% for log in coral.logs %}
                                     <div class="timeline-item">
-                                        <div class="timeline-date">{{ log.uploadDate.mytime('%Y-%m-%d %H:%M') if log.uploadDate else log.submittedAt.mytime('%Y-%m-%d %H:%M') if log.submittedAt else '-' }}</div>
+                                        <div class="timeline-date">{{ log.uploadDate.strftime('%Y-%m-%d %H:%M') if log.uploadDate else log.submittedAt.strftime('%Y-%m-%d %H:%M') if log.submittedAt else '-' }}</div>
                                         <div class="timeline-content">
                                             <div class="timeline-title">{% if loop.first %}Latest Submission{% else %}Past Submission{% endif %}</div>
                                             <div class="timeline-status">
@@ -398,7 +398,7 @@
                                     {% endfor %}
                                 {% else %}
                                     <div class="timeline-item">
-                                        <div class="timeline-date">{{ coral.uploadDate.mytime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.mytime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</div>
+                                        <div class="timeline-date">{{ coral.uploadDate.strftime('%Y-%m-%d %H:%M') if coral.uploadDate else coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</div>
                                         <div class="timeline-content">
                                             <div class="timeline-title">Latest Submission</div>
                                             <div class="timeline-status">

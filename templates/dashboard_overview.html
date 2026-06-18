@@ -86,7 +86,7 @@
                                             —
                                             {% endif %}
                                         </td>
-                                <td>{{ coral.submittedAt.mytime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
+                                <td>{{ coral.submittedAt.strftime('%Y-%m-%d %H:%M') if coral.submittedAt else '-' }}</td>
                                 <td>
                                     {% if coral.reviewStatus %}
                                         <span class="status-badge status-{{ coral.reviewStatus }}">

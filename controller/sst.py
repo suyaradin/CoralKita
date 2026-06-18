@@ -8,7 +8,7 @@ from flask import Blueprint, jsonify, session, request, render_template
 
 import os
 import threading
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
@@ -26,15 +26,6 @@ from dao.UserDAO import getNotificationRecipients
 from dao.CoralDAO import getCoralCountByRegion
 from util.gmail_notify import send_email_to_recipients
 
-@app.template_filter('mytime')
-def mytime_filter(dt):
-    if dt is None:
-        return '-'
-    # Convert UTC to Malaysia Time (UTC+8)
-    myt = timezone(timedelta(hours=8))
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(myt).mytime('%Y-%m-%d %H:%M')
 # ============================================================================
 # 1. BLUEPRINT & CONSTANTS
 # ============================================================================
@@ -265,7 +256,7 @@ def processRegionSST(
                 f"A coral bleaching {alertLevel.lower()} has been detected at {regionName}.\n\n"
                 f"Current DHW: {dhw} °C-weeks\n"
                 f"Alert Level: {alertLevel}\n"
-                f"Date: {datetime.now().mytime('%Y-%m-%d %H:%M')} UTC\n\n"
+                f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')} UTC\n\n"
                 f"Please log in to CoralKita to review the latest SST data and take necessary action.\n\n"
                 f"- CoralKita Team"
             )

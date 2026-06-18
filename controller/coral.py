@@ -6,7 +6,7 @@ and email notifications for coral entries.
 """
 
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, current_app
 from werkzeug.utils import secure_filename
@@ -26,15 +26,6 @@ from util.CoralClassifier import classifyCoral
 from util.DBConnection import getConnection
 from util.gmail_notify import send_email_to_recipients
 
-@app.template_filter('mytime')
-def mytime_filter(dt):
-    if dt is None:
-        return '-'
-    # Convert UTC to Malaysia Time (UTC+8)
-    myt = timezone(timedelta(hours=8))
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(myt).mytime('%Y-%m-%d %H:%M')
 # ============================================================================
 # 1. BLUEPRINT & CONSTANTS
 # ============================================================================
@@ -72,7 +63,7 @@ def secure_image_filename(original_filename: str) -> str:
     Returns:
         Secure filename with timestamp
     """
-    timestamp = datetime.now().mytime('%Y%m%d_%H%M%S')
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     return secure_filename(f"{timestamp}_{original_filename}")
 
 
@@ -138,7 +129,7 @@ def notify_reviewers(coral_id: int, genus: str, species: str, region_id: int, su
             f"Species: {genus} {species}\n"
             f"Region: {region_name}\n"
             f"Submitted by: {submitted_by_name}\n"
-            f"Submitted at: {datetime.now().mytime('%Y-%m-%d %H:%M')} UTC\n\n"
+            f"Submitted at: {datetime.now().strftime('%Y-%m-%d %H:%M')} UTC\n\n"
             f"Please log in to CoralKita and review this submission in the Pending Review section.\n\n"
             f"- CoralKita Team"
         )
