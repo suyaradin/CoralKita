@@ -17,7 +17,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-TOKEN_PATH = "token.json"
+TOKEN_PATH = "/etc/secrets/token.json" if os.path.exists("/etc/secrets/token.json") else "token.json"
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 
 # Reuse one service + sender per process; lock for thread-safe parallel SST workers
