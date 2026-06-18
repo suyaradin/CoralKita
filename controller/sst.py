@@ -148,31 +148,44 @@ def getStatusLabel(dhw: float, hotspot: float) -> str:
     Returns:
         Status label string
     """
-    if dhw >= DHW_ALERT_LEVEL2:
+    if hotspot >= 1.0 and dhw >= DHW_ALERT_LEVEL2:
         return "Alert Level 2"
-    elif dhw >= DHW_ALERT_LEVEL1:
+    elif hotspot >= 1.0 and dhw >= DHW_ALERT_LEVEL1:
         return "Alert Level 1"
-    elif dhw > 0:
+    elif hotspot >= 1.0 and dhw > 0:
         return "Bleaching Warning"
     elif hotspot > 0:
         return "Bleaching Watch"
     return "No Stress"
 
 
-def getAlertLevel(dhw: float) -> str | None:
+ALERT_EMAIL_LEVELS = {
+    "Bleaching Watch",
+    "Bleaching Warning",
+    "Alert Level 1",
+    "Alert Level 2"
+}
+
+
+def getAlertLevel(dhw: float, hotspot: float) -> str | None:
     """
-    Determine alert level for email notifications.
+    Determine alert level for email notifications based on the bleaching alert scale.
     
     Args:
         dhw: Degree Heating Weeks value
+        hotspot: Current hotspot value (SST - MMM)
     
     Returns:
         Alert level string, or None if no alert needed
     """
-    if dhw >= DHW_ALERT_LEVEL2:
+    if hotspot >= 1.0 and dhw >= DHW_ALERT_LEVEL2:
         return "Alert Level 2"
-    elif dhw >= DHW_ALERT_LEVEL1:
+    elif hotspot >= 1.0 and dhw >= DHW_ALERT_LEVEL1:
         return "Alert Level 1"
+    elif hotspot >= 1.0 and dhw > 0:
+        return "Bleaching Warning"
+    elif hotspot > 0:
+        return "Bleaching Watch"
     return None
 
 
@@ -221,12 +234,16 @@ def processRegionSST(
     # Compute metrics
     dhw, daysAccumulated = computeDHW(regionID)
     hotspot = sstValue - MAX_MONTHLY_MEAN
-    alertLevel = getAlertLevel(dhw)
+    alertLevel = getAlertLevel(dhw, hotspot)
     status = getStatusLabel(dhw, hotspot)
     
     # Send alerts if needed
     alert_sent_recently = wasAlertSentToday(regionID)
-    should_send_alert = bool(alertLevel) and (bypass_daily_alert_lock or not alert_sent_recently)
+    should_send_alert = (
+        bool(alertLevel)
+        and alertLevel in ALERT_EMAIL_LEVELS
+        and (bypass_daily_alert_lock or not alert_sent_recently)
+    )
 
     pending_alert = None
     if should_send_alert:
@@ -234,7 +251,7 @@ def processRegionSST(
         if not recipients:
             print("[SST] No notification recipients found for roleID 1 or 2")
         else:
-            subject = f"[CoralKita] Bleaching {alertLevel} - {regionName}"
+            subject = f"[CoralKita] {alertLevel} - {regionName}"
             body = (
                 f"Dear CoralKita User,\n\n"
                 f"A coral bleaching {alertLevel.lower()} has been detected at {regionName}.\n\n"

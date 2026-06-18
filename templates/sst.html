@@ -1,0 +1,82 @@
+<div class="sst-monitor" id="sst-monitor">
+    <div class="sst-monitor-header">
+        <div class="sst-title">Sea Surface Temperature Monitoring</div>
+    </div>
+    
+    <div class="sst-monitor-content">
+        <div class="sst-temperature" id="sst-temperature">--°C</div>
+        <div class="sst-retrieved" id="sst-timestamp">Retrieving...</div>
+    </div>
+    
+    <div class="dhw-monitor-header">
+        <div class="sst-title">Degree Heating Week</div>
+        <div class="content-subtitle">Amount of accumulated heat stress that coral reefs are exposed to over a 12-week period</div>
+    </div>
+    
+    <div class="dhw-monitor-content">
+        <table class="sst-data-table">
+            <thead>
+                <tr>
+                    <th>Site</th>
+                    <th>Heat Accumulation (Day)</th>
+                    <th>DHW (°C-weeks)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="dhw-table-body">
+                <tr><td colspan="4" class="table-loading">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="input-box">
+            <div class="sst-title">Sea Surface Temperature Map</div>
+            <div class="content-subtitle">Source: NOAA Coral Reef Watch</div>
+        
+        <div class="select-wrapper">
+            <select class="form-select" id="island" name="island-selection">
+                <option value="1">Pulau Redang</option>
+                <option value="2">Pulau Bidong</option>
+                <option value="3">Pulau Perhentian</option>
+                <option value="4">Pulau Kapas</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="sst-map-content">
+        <div id="sst-map-container"></div>
+        
+        <div class="scale-section">
+            <div class="content-subtitle">Bleaching Alert Scale</div>
+            <div class="dhw-monitor-content">
+                <table class="sst-scale-table">
+                    <tr>
+                        <td><span class="scale-dot" style="background:#4ade80;"></span></td>
+                        <td class="mono-text">Hotspot &lt;= 0</td>
+                        <td>No Stress</td>
+                    </tr>
+                    <tr>
+                        <td><span class="scale-dot" style="background:#facc15;"></span></td>
+                        <td class="mono-text">0 &lt; Hotspot &lt; 1</td>
+                        <td>Bleaching Watch</td>
+                    </tr>
+                    <tr>
+                        <td><span class="scale-dot" style="background:#f97316;"></span></td>
+                        <td class="mono-text">1 &lt;= Hotspot &amp; 0 &lt; DHW &lt; 4</td>
+                        <td>Bleaching Warning</td>
+                    </tr>
+                    <tr>
+                        <td><span class="scale-dot" style="background:#ef4444;"></span></td>
+                        <td class="mono-text">1 &lt;= Hotspot &amp; 4 &lt;= DHW &lt; 8</td>
+                        <td>Alert Level 1</td>
+                    </tr>
+                    <tr>
+                        <td><span class="scale-dot" style="background:#7f1d1d;"></span></td>
+                        <td class="mono-text">1 &lt;= Hotspot &amp; 8 &lt;= DHW &lt; 12</td>
+                        <td>Alert Level 2</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

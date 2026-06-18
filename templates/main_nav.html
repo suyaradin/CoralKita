@@ -1,11 +1,21 @@
 <nav class="main-nav">
     <div class="nav-logo">
-        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="CoralKita Logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CoralKita Logo">
         <div class="nav-brand">CoralKita</div>
     </div>
+    
+    {% if roleID == 3 %}
+    <div class="nav-center">
+        <a href="#edu-gallery" class="nav-link">Coral Library</a>
+        <a href="#edu-stats-table" class="nav-link">Coral Statistics</a>
+        <a href="#sst-monitor" class="nav-link">SST Monitoring</a>
+        <a href="https://www.iucnredlist.org/" target="_blank" class="nav-link">IUCN Red List</a>
+    </div>
+    {% endif %}
+
     <div class="nav-right">
         <div class="nav-user">
-            <div class="nav-avatar" id="nav-avatar">{{ user_initials}}</div>
+            <div class="nav-avatar" id="nav-avatar">{{ user_initials }}</div>
             <div class="nav-name" id="nav-name">{{ user_name }}</div>
             <div class="nav-role" id="nav-role">{{ user_role }}</div>
         </div>

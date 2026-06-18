@@ -3,242 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.png') }}" type="image/png">
     <title>CoralKita - Educator Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
+
     {% include 'main_nav.html' %}
-    <div class="educator-page-wrapper active">
-        <div class="educator-hero">
-            <div class="educator-hero-overlay"></div>
-            <div class="educator-hero-container">
-                <div class="educator-hero-label">CORALKITA - EDUCATOR ACCESS</div>
-                <h1 class="educator-hero-title">Even the ocean<br><span class="text-teal-bright">needs hugs.</span></h1>
-                <p class="educator-hero-copy">CoralKita (<span class="text-teal-pale">Coral + "Kita"</span>, meaning
-                    "We" in Malay) uses machine learning to decode coral colour patterns and translate subtle health
-                    shifts into stories of survival. Browse the reef's health below — or download a report for your
-                    classroom.</p>
-                <div class="hero-actions">
-                    <button type="button" class="btn btn-primary"
-                        onclick="document.getElementById('edu-gallery').scrollIntoView({behavior:'smooth'})">Browse
-                        Gallery</button>
-                    <button type="button" class="btn btn-ghost" onclick="openPdfModal()">Download PDF Report</button>
-                </div>
+
+    <div class="page-container">
+       <section class="hero-section">
+            <div class="hero-title-container">
+                <h1 class="main-title">Even the ocean<br>needs hugs</h1>
+                <p class="hero-subtitle">
+                    CoralKita (Coral + "Kita", meaning "We" in Malay) uses machine learning to decode coral colour patterns and translate subtle health shifts into stories of survival. Browse the reef's health below or download a report for your classroom.
+                </p>
+            </div>
+        </section>
+
+        <div class="sst-info-section" id="sst-bleaching-info">
+            <div class="sst-info-header">
+                <h2 class="content-title">How Coral Bleaching Occurs?</h2>
+            </div>
+            <div class="sst-info-content">
+                <p class="explanation-paragraph">
+                    One of the reason is accumulated heat stress, measured in Degree Heating Weeks (DHW). Corals has mutualism symbiotic relationship with zooxanthellae, that provide them with colors and nutrients through photosynthesis. When corals experience prolonged elevated sea temperatures, they expel zooxanthellae, leading to bleaching. DHW quantifies this stress by summing the intensity and duration of heat exposure over a 12-week period. Higher DHW values indicate greater risk of bleaching and coral mortality.
+                </p>
             </div>
         </div>
 
-        <div class="main-content">
-            <div class="page-header">
-                <div class="overview-title">Welcome, {{ user_name.split(' ')[0] }}</div>
-                <div class="overview-subtitle">Where marine technology meets education</div>
+        <div class="marquee-wrapper">
+            <div class="marquee-content">
+                <span>✦ Welcome, {{ user_name.split(' ')[0] }} </span>
+                <span>✦ WHERE MARINE TECHNOLOGY MEETS EDUCATION </span>
+                <span>✦ CORALKITA </span>
+                <span>✦ Welcome, {{ user_name.split(' ')[0] }} </span>
+                <span>✦ WHERE MARINE TECHNOLOGY MEETS EDUCATION </span>
+                <span>✦ CORALKITA </span>
             </div>
-
-            <!-- Filter Bar -->
-            <div class="filter-bar">
-                <span class="filter-label">Filter:</span>
-                <span class="filter-chip active" id="edu-f-all" onclick="eduFilter('all',this)">All</span>
-                <span class="filter-chip" id="edu-f-acropora" onclick="eduFilter('Acropora',this)">Acropora</span>
-                <span class="filter-chip" id="edu-f-montipora" onclick="eduFilter('Montipora',this)">Montipora</span>
-                <span class="filter-chip" id="edu-f-porites" onclick="eduFilter('Porites',this)">Porites</span>
-                <span class="divider-vertical"></span>
-                <span class="filter-chip" id="edu-f-non-bleaching" onclick="eduFilter('Non-Bleaching',this)">Non-Bleaching</span>
-                <span class="filter-chip" id="edu-f-bleaching" onclick="eduFilter('Bleaching',this)">Bleaching</span>
-                <span class="edu-count" id="edu-count">Showing {{ corals|length }} entries</span>
+            <div class="marquee-content" aria-hidden="true">
+                <span>✦ Welcome, {{ user_name.split(' ')[0] }} </span>
+                <span>✦ WHERE MARINE TECHNOLOGY MEETS EDUCATION </span>
+                <span>✦ CORALKITA </span>
+                <span>✦ Welcome, {{ user_name.split(' ')[0] }} </span>
+                <span>✦ WHERE MARINE TECHNOLOGY MEETS EDUCATION </span>
+                <span>✦ CORALKITA </span>
             </div>
+        </div>
 
-            <!-- Coral Gallery -->
-            <div id="edu-gallery" class="coral-grid">
+        <div class="story-section">
+            <div class="edu-hero-actions">
+                <button type="button" class="cta-btn-round" 
+                    onclick="document.getElementById('edu-gallery').scrollIntoView({behavior:'smooth'})">
+                    Browse Gallery
+                </button>
+                <button type="button" class="outline-btn" onclick="openPdfModal()">
+                    Download PDF Report
+                </button>
+            </div>
+            <div class="edu-filter-bar">
+                <div class="edu-filter-group">
+                    <button type="button" class="outline-btn edu-small-btn" id="edu-f-non-bleaching" onclick="eduFilter('Non-Bleaching',this)">Non-Bleaching</button>
+                    <button type="button" class="outline-btn edu-small-btn" id="edu-f-bleaching" onclick="eduFilter('Bleaching',this)">Bleaching</button>
+                </div>
+                <span id="edu-count" class="edu-count">Showing {{ corals|length }} entries</span>
+            </div>
+        </div>
+        <section class="testimonials-section edu-testimonials">
+            <div id="edu-gallery" class="testimonials-grid">
                 {% for coral in corals %}
-                <div class="edu-card coral-card"
-                    data-genus="{{ coral.genus }}"
-                    data-health="{{ coral.healthName or '' }}">
-                    <input type="checkbox" class="edu-check" aria-label="Select for report">
-                    <div class="coral-card-img {{ (coral.healthName or 'pending')|lower|replace('-','') }}">🪸</div>
+                 <div class="testimonial-card edu-card coral-card" 
+                     data-genus="{{ coral.genus }}" 
+                     data-health="{{ coral.healthName or '' }}"
+                     data-image-src="{{ url_for('static', filename='uploads/' + coral.imagePath) if coral.imagePath else '' }}"
+                     data-uploader-name="{{ coral.uploadedByName or coral.submittedBy or 'CoralKita' }}">
+                    
+                    <div class="card-check-wrapper">
+                        <input type="checkbox" class="edu-check" aria-label="Select for report">
+                    </div>
+
+                    <div class="coral-card-img {{ (coral.healthName or 'pending')|lower|replace('-','') }}">
+                        {% if coral.imagePath %}
+                        <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" alt="{{ coral.genus }} {{ coral.species }}">
+                        {% else %}
+                        <span class="emoji">🪸</span>
+                        {% endif %}
+                    </div>
+
                     <div class="coral-card-body">
-                        <div class="coral-card-id">CK-{{ '%04d'|format(coral.coralID) }} · {{ coral.regionName }}</div>
-                        <div class="coral-card-genus"><em>{{ coral.genus }} {{ coral.species }}</em></div>
-                        <div class="card-meta-row">
-                            <span class="badge badge-{{ (coral.healthName or 'pending')|lower|replace('-','') }}">
-                                {{ coral.healthName or 'Pending' }}
-                            </span>
-                            <span class="card-meta-small">
-                                {{ (coral.confidenceScore * 100)|int if coral.confidenceScore else '—' }}%
-                            </span>
+                        <div>
+                            <div class="coral-card-id">CK-{{ '%04d'|format(coral.coralID) }}</div>
+                            <div class="coral-card-genus">{{ coral.genus }} {{ coral.species }}</div>
+                            <div class="coral-meta-line">
+                                CK-{{ '%04d'|format(coral.coralID) }} · {{ coral.regionName }}
+                            </div>
+                            <h3 class="coral-title"><em>{{ coral.genus }} {{ coral.species }}</em></h3>
+                            
+                            <div class="coral-card-meta-row">
+                                <span class="badge badge-{{ coral.healthName|lower|replace(' ','')|replace('-','') }}">{{ coral.healthName or 'Pending' }}</span>
+                                <span class="card-meta-small">{{ (coral.confidenceScore * 100)|int if coral.confidenceScore else '—' }}% Confidence</span>
+                            </div>
+                            
+                            <div class="coral-iucn-line">
+                                IUCN Status: <strong class="iucn-strong"><span class="text-amber-warn">{{ coral.iucnName or '—' }}</span></strong>
+                            </div>
                         </div>
-                        <div class="card-meta-label">
-                            IUCN: <span class="text-amber-warn">{{ coral.iucnName or '—' }}</span>
-                        </div>
-                        <button type="button" class="btn btn-ghost btn-sm btn-block"
-                            onclick="openCardModal(
-                                'CK-{{ '%04d'|format(coral.coralID) }}',
-                                '{{ coral.genus }} {{ coral.species }}',
-                                '{{ coral.healthName or 'Pending' }}',
-                                '{{ (coral.confidenceScore * 100)|int if coral.confidenceScore else 0 }}',
-                                '{{ coral.iucnName or 'Not Evaluated' }}',
-                                '{{ coral.regionName }}',
-                                '{{ coral.growthFormName or '—' }}',
-                                '{{ coral.waterTempMin }}–{{ coral.waterTempMax }}°C',
-                                '{{ coral.pHMin }}–{{ coral.pHMax }}'
-                            )">Read More</button>
+
+                        <button type="button" class="square-submit-btn edu-read-more"
+                        data-coral-id="CK-{{ '%04d'|format(coral.coralID) }}"
+                        data-scientific-name="{{ coral.genus }} {{ coral.species }}"
+                        data-health-status="{{ coral.healthName or 'Pending' }}"
+                        data-confidence="{{ (coral.confidenceScore * 100)|int if coral.confidenceScore else 0 }}"
+                        data-iucn-status="{{ coral.iucnName or 'Not Evaluated' }}"
+                        data-region-name="{{ coral.regionName }}"
+                        data-growth-form="{{ coral.growthFormName or '—' }}"
+                        data-temp-range="{{ coral.waterTempMin }}–{{ coral.waterTempMax }}°C"
+                        data-ph-range="{{ coral.pHMin }}–{{ coral.pHMax }}">Read More</button>
                     </div>
                 </div>
                 {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">🪸</div>
-                    <div class="empty-state-title">No Approved Coral Entries</div>
-                    <div class="empty-state-text">No coral data has been approved for public display yet.</div>
+                <div class="testimonial-card testimonial-empty">
+                    <div class="emoji">🪸</div>
+                    <h3>No Approved Coral Entries</h3>
+                    <p>No coral data has been approved for public display yet.</p>
                 </div>
                 {% endfor %}
             </div>
+            <div class="wavy-bottom-divider"></div>
+        </section>
 
-            <!-- Coral Statistics Table -->
-            <div class="panel panel-spaced">
-                <div class="panel-header">
-                    <div class="panel-title">◫ Coral Statistics</div>
-                </div>
-                <div class="table-scroll">
-                    <table class="data-table" id="edu-stats-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Genus</th>
-                                <th>Species</th>
-                                <th>Region</th>
-                                <th>Health Status</th>
-                                <th>IUCN Status</th>
-                                <th>Confidence</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for coral in corals %}
-                            <tr data-genus="{{ coral.genus }}" data-health="{{ coral.healthName or '' }}">
-                                <td class="mono">CK-{{ '%04d'|format(coral.coralID) }}</td>
-                                <td>{{ coral.genus }}</td>
-                                <td>{{ coral.species }}</td>
-                                <td class="table-muted">{{ coral.regionName }}</td>
-                                <td>
-                                    <span class="badge badge-{{ (coral.healthName or 'pending')|lower|replace('-','') }}">
-                                        {{ coral.healthName or 'Pending' }}
-                                    </span>
-                                </td>
-                                <td class="table-status">{{ coral.iucnName or '—' }}</td>
-                                <td>
-                                    {% if coral.confidenceScore %}
-                                    <div class="mono-small">{{ (coral.confidenceScore * 100)|int }}%</div>
-                                    <div class="confidence-bar">
-                                        <div class="confidence-fill"
-                                            style="width:{{ (coral.confidenceScore * 100)|int }}%"></div>
-                                    </div>
-                                    {% else %}
-                                    —
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="7" style="text-align:center;color:var(--text-muted)">No approved entries found</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+        <section class="story-section">
+            <h2 class="section-title">Coral Statistics</h2>
+            <span class="sub-label">Structured Dataset Overview</span>
+            
+            <div class="edu-stats-table-wrap">
+                <table class="edu-stats-table" id="edu-stats-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Coral Species</th>
+                            <th>location (photo taken)</th>
+                            <th>Health Status</th>
+                            <th>IUCN Status</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for coral in corals %}
+                        <tr data-genus="{{ coral.genus }}" data-health="{{ coral.healthName or '' }}">
+                            <td class="mono-small">CK-{{ '%04d'|format(coral.coralID) }}</td>
+                            <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
+                            <td class="muted">{{ coral.regionName }}</td>
+                            <td class="col-health">
+                                <span class="badge badge-{{ coral.healthName|lower|replace(' ','')|replace('-','') }}">{{ coral.healthName }}</span>
+                            </td>
+                            <td class="iucn-cell">{{ coral.iucnName or '—' }}</td>
+                            <td>
+                                            {% if coral.confidenceScore %}
+                                            <div class="mono-small">{{ (coral.confidenceScore * 100)|int }}%</div>
+                                            <div class="confidence-bar">
+                                                <div class="confidence-fill"
+                                                    style="width:{{ (coral.confidenceScore * 100)|int }}%"></div>
+                                            </div>
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="empty-cell">No approved entries found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+        </section>
 
-            <div class="sst-monitor" id="sst-monitor">
-                <div class="sst-monitor-header">
-                    <div class="content-title">Sea Surface Temperature Monitoring</div>
-                </div>
-                <div class="sst-monitor-content">
-                    <div class="sst-temperature" id="sst-temperature">--°C</div>
-                    <span class="sst-status" id="sst-alert-badge" style="display:none;">Bleaching Alert</span>
-                    <div class="sst-retrieved" id="sst-timestamp">Retrieving...</div>
-                </div>
-                <div class="dhw-monitor-header">
-                    <div class="content-title">Degree Heating Week</div>
-                    <div class="content-subtitle">Amount of accumulated heat stress that coral reefs are exposed to over a 12-week period</div>
-                </div>
-                <div class="dhw-monitor-content">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Site</th>
-                                <th>Heat Accumulation (Day)</th>
-                                <th>DHW (°C-weeks)</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dhw-table-body">
-                            <tr><td colspan="4">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="input-box">
-                    <div class="content-title">Sea Surface Temperature Map</div>
-                    <div class="content-subtitle">Source: NOAA Coral Reef Watch</div>
-                    <select class="form-select" id="island" name="island-selection">
-                        <option value="1">Pulau Redang</option>
-                        <option value="2">Pulau Bidong</option>
-                        <option value="3">Pulau Perhentian</option>
-                        <option value="4">Pulau Kapas</option>
-                    </select>
-                </div>
-                <div class="sst-map-content">
-                    <div id="sst-map-container" style="width:100%; height:400px; border-radius:10px;"></div>
-                    <div style="margin-top:12px;">
-                        <div class="content-subtitle">Bleaching Alert Scale</div>
-                        <table>
-                            <tr>
-                                <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#4ade80;margin-right:6px;"></span></td>
-                                <td>No Stress</td>
-                            </tr>
-                            <tr>
-                                <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#facc15;margin-right:6px;"></span></td>
-                                <td>Bleaching Watch</td>
-                            </tr>
-                            <tr>
-                                <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f97316;margin-right:6px;"></span></td>
-                                <td>Bleaching Warning</td>
-                            </tr>
-                            <tr>
-                                <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;margin-right:6px;"></span></td>
-                                <td>Alert Level 1</td>
-                            </tr>
-                            <tr>
-                                <td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#7f1d1d;margin-right:6px;"></span></td>
-                                <td>Alert Level 2</td>
-                            </tr>
-                        </table>
+        <section class="why-us-section" id="sst-monitor">
+            <div class="wavy-top-divider"></div>
+            {% include 'sst.html' %}
+        </section>
+
+        <footer class="master-footer">
+            <div class="footer-top-grid">
+                <div class="footer-columns">
+                    <div>
+                        <div class="footer-heading">CoralKita</div>
+                        <p style="font-size: 0.85rem; line-height: 1.6; color: #555;">
+                            Protecting our ocean's treasures through predictive technology and open marine analytics.
+                        </p>
+                    </div>
+                    <div>
+                        <div style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 12px;">Contact</div>
+                        <p style="font-size: 0.85rem; line-height: 1.6; color: #555;">
+                            Universiti Malaysia Terengganu<br>
+                            Soraya Radin<br>
+                            <a href="mailto:s72325@ocean.umt.edu.my" style="color: #111111; text-decoration: underline;">s72325@ocean.umt.edu.my</a>
+                        </p>
+                    </div>
+                    <div>
+                        <div style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 12px;">Data Sources</div>
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #555;">
+                            National Oceanic and Atmospheric Administration (NOAA)<br>
+                            International Union for Conservation of Nature (IUCN) Red List
+                        </p>
                     </div>
                 </div>
             </div>
             
-            <footer class="footer">
-                <div class="footer-grid">
-                    <div>
-                        <div class="footer-heading">CoralKita</div>
-                        <div class="footer-copy">Protecting our ocean's treasures through technology. Universiti
-                            Malaysia Terengganu.</div>
-                    </div>
-                    <div>
-                        <div class="footer-link-title">Contact</div>
-                        <div class="footer-text">Universiti Malaysia Terengganu<br>Radin Nursoraya
-                            Syafiqah<br>s72325@ocean.umt.edu.my</div>
-                    </div>
-                    <div>
-                        <div class="footer-link-title">Data Sources</div>
-                        <div class="footer-text">NASA Earthdata GIBS (WMS)<br>Open-Meteo Marine API<br>Mapbox GL
-                            JS<br>IUCN Red List</div>
-                    </div>
+            <div class="footer-bottom-bar">
+                <p>&copy; 2026 CoralKita - Even The Oceans Need Hugs</p>
+                <div class="footer-legal-links">
+                    <a href="https://www.umt.edu.my/" target="_blank">Powered by UMT</a>
                 </div>
-                <div class="footer-bottom">© 2026 CoralKita — Even The Oceans Need Hugs</div>
-            </footer>
+            </div>
+        </footer>
 
-        </div>
     </div>
-    </div>
-        <script>
+    {% include 'modals.html' %}
+    <script>
         const MAPBOX_TOKEN = '{{ mapbox_token or MAPBOX_TOKEN }}';
+        const FAVICON_URL = '{{ url_for('static', filename='img/logo.png') }}';
     </script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>

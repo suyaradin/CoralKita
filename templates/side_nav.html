@@ -16,6 +16,9 @@
         <a class="sidebar-item{% if active_section == 'coral_library' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='coral_library') }}">
             <span class="sidebar-icon">◉</span> Coral Library
         </a>
+        <a class="sidebar-item" href="https://www.iucnredlist.org/" target="_blank">
+            <span class="sidebar-icon">◉</span> IUCN Red List
+        </a>
     </div>
 
     <div class="sidebar-section">
@@ -58,23 +61,8 @@
     </div>
     {% endif %}
 
-    {% if roleID == 3 %}
-    <div class="sidebar-section">
-        <div class="sidebar-label">Overview</div>
-        <a class="sidebar-item{% if active_section == 'overview' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='overview') }}">
-            <span class="sidebar-icon">◈</span> Dashboard
-        </a>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="sidebar-label">System Settings</div>
-        <a class="sidebar-item{% if active_section == 'my_profile' %} active{% endif %}" href="{{ url_for('dashboard.dashboard_section', section='my_profile') }}">
-            <span class="sidebar-icon">◉</span> My Profile
-        </a>
-    </div>
-    {% endif %}
-
     <div class="sidebar-footer">
-        <div class="footer-text">© 2026 CoralKita by Soraya</div>
+        <div class="footer-text">&copy; 2026 CoralKita by Soraya - Even The Oceans Need Hugs</div>
+        <div class="footer-text"><a href="https://www.umt.edu.my/" target="_blank">Powered by UMT</a></div>
     </div>
 </div>

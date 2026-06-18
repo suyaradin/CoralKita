@@ -393,7 +393,7 @@ def getPendingReviewCorals() -> list[dict]:
 def getMarineBiologistCoralsWithStatus(userID: int) -> list[dict]:
     """
     Get corals submitted by a specific Marine Biologist with their review status.
-    Used by Marine Biologist dashboard overview.
+    Used by Marine Biologist dashboard overview and library.
     
     Args:
         userID: ID of the marine biologist user
@@ -409,6 +409,7 @@ def getMarineBiologistCoralsWithStatus(userID: int) -> list[dict]:
         sql = """
             SELECT 
                 c.coralID,
+                c.submittedBy,
                 c.genus,
                 c.species,
                 c.submittedAt,
@@ -443,7 +444,7 @@ def getMarineBiologistCoralsWithStatus(userID: int) -> list[dict]:
 def getMarineBiologistHealthLogs(userID: int) -> list[dict]:
     """
     Get all submission logs (one row per image/classification) for a Marine Biologist.
-    Used by the health_log section to avoid collapsing logs by coralID.
+    Used by the health_log section to show logs only for corals submitted by the current user.
     
     Args:
         userID: ID of the marine biologist user
@@ -459,6 +460,7 @@ def getMarineBiologistHealthLogs(userID: int) -> list[dict]:
         sql = """
             SELECT
                 c.coralID,
+                c.submittedBy,
                 c.genus,
                 c.species,
                 c.submittedAt,
@@ -522,11 +524,13 @@ def getApprovedCoralsForEducator() -> list[dict]:
                 ci.imagePath,
                 h.healthName,
                 cl.confidenceScore,
-                i.iucnName
+                i.iucnName,
+                u.username as uploadedByName
             FROM Coral c
             JOIN Region reg ON c.regionID = reg.regionID
             LEFT JOIN GrowthForm gf ON c.growthFormID = gf.growthFormID
             JOIN CoralImage ci ON c.coralID = ci.coralID
+            LEFT JOIN Users u ON ci.uploadBy = u.userID
             JOIN Classification cl ON ci.imageID = cl.imageID
             JOIN HealthStatus h ON cl.healthID = h.healthID
             JOIN Review rev ON cl.classID = rev.classID

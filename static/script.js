@@ -64,7 +64,12 @@ function showAppModal(title, message, type = 'info') {
     const iconEl = document.getElementById('app-modal-icon');
 
     if (titleEl) titleEl.textContent = title;
-    if (bodyEl) bodyEl.textContent = message;
+    
+    // FIXED: Convert \n characters or preserve <br> tags cleanly by utilizing innerHTML
+    if (bodyEl) {
+        bodyEl.innerHTML = message.replace(/\n/g, '<br>');
+    }
+    
     if (iconEl) {
         iconEl.className = `app-modal-icon ${type}`;
         iconEl.textContent = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
@@ -223,21 +228,62 @@ function showSection(sectionId) {
 // Coral Info Modal (Alert-based fallback)
 function openCardModal(coralID, scientificName, healthStatus, confidence, iucnStatus, regionName, growthForm, tempRange, phRange) {
     const details = [
-        `Coral ID: ${coralID || 'N/A'}`,
-        `Scientific Name: ${scientificName || 'N/A'}`,
-        `Health Status: ${healthStatus || 'N/A'}`,
-        `Confidence: ${confidence || 0}%`,
-        `IUCN Status: ${iucnStatus || 'N/A'}`,
-        `Region: ${regionName || 'N/A'}`,
-        `Growth Form: ${growthForm || 'N/A'}`,
-        `Temperature Range: ${tempRange || 'N/A'}`,
+        `Coral ID: ${coralID || 'N/A'}\n`,
+        `Scientific Name: ${scientificName || 'N/A'}\n`,
+        `Health Status: ${healthStatus || 'N/A'}\n`,
+        `Confidence: ${confidence || 0}%\n`,
+        `IUCN Status: ${iucnStatus || 'N/A'}\n`,
+        `Location (photo taken): ${regionName || 'N/A'}\n`,
+        `Growth Form: ${growthForm || 'N/A'}\n`,
+        `Temperature Range: ${tempRange || 'N/A'}\n`,
         `pH Range: ${phRange || 'N/A'}`
     ].join('\n');
     showAppModal('Coral Details', details, 'info');
 }
 
+function applyWatermarkToImage(imgSrc, labelText) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            // Draw original image
+            ctx.drawImage(img, 0, 0);
+
+            // Watermark text settings
+            const text = `© CoralKita | ${labelText}`;
+            const fontSize = Math.max(12, Math.floor(img.width / 25));
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+
+            // Measure text for background bar
+            const textWidth = ctx.measureText(text).width;
+            const padding = 6;
+            const barHeight = fontSize + padding * 2;
+            const barY = img.height - barHeight;
+
+            // Semi-transparent dark background bar
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(img.width - textWidth - padding * 2, barY, textWidth + padding * 2, barHeight);
+
+            // White text
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.fillText(text, img.width - padding, img.height - padding);
+
+            resolve(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        img.onerror = () => resolve(imgSrc); // fallback: use original if error
+        img.src = imgSrc;
+    });
+}
+
 // PDF Export
-function openPdfModal() {
+async function openPdfModal() {
     const cards = Array.from(document.querySelectorAll('#edu-gallery .edu-card'))
         .filter(card => !card.classList.contains('hidden'));
     const selectedCards = cards.filter(card => card.querySelector('.edu-check')?.checked);
@@ -251,20 +297,30 @@ function openPdfModal() {
     const rows = source.map(card => {
         const id = card.querySelector('.coral-card-id')?.textContent?.trim() || 'N/A';
         const scientific = card.querySelector('.coral-card-genus')?.textContent?.trim() || 'N/A';
-        const status = card.querySelector('.badge')?.textContent?.trim() || 'N/A';
-        const iucnRaw = card.querySelector('.card-meta-label .text-amber-warn')?.textContent?.trim() || 'N/A';
-        const iucn = iucnRaw.replace(/^IUCN:\s*/i, '');
+        const status = card.querySelector('.text-amber-warn')?.textContent?.trim() || 'N/A';
+        const iucn = card.querySelector('.text-amber-warn')?.textContent?.trim() || 'N/A';
         const confidence = card.querySelector('.card-meta-small')?.textContent?.trim() || 'N/A';
-        return { id, scientific, status, iucn, confidence };
+        const image = card.querySelector('.coral-card-img img')?.src || card.dataset.imageSrc || '';
+        const uploader = card.dataset.uploaderName || 'CoralKita';  
+        return { id, scientific, status, iucn, confidence, image, uploader };
     });
 
+    // Apply watermark to all images first
+    const watermarkedRows = await Promise.all(rows.map(async (r) => {
+        const watermarkedSrc = r.image
+            ? await applyWatermarkToImage(r.image, r.uploader)
+            : '';
+        return { ...r, watermarkedSrc };
+    }));
+
+    const faviconUrl = window.FAVICON_URL || '/static/img/logo.png';
     const now = new Date();
     const generatedAt = now.toLocaleString('en-MY', {
         year: 'numeric', month: 'short', day: 'numeric',
         hour: '2-digit', minute: '2-digit'
     });
 
-    const htmlRows = rows.map((r, idx) => `
+    const htmlRows = watermarkedRows.map((r, idx) => `
         <tr>
             <td>${idx + 1}</td>
             <td>${r.id}</td>
@@ -272,6 +328,11 @@ function openPdfModal() {
             <td>${r.status}</td>
             <td>${r.iucn}</td>
             <td>${r.confidence}</td>
+            <td style="padding: 8px;">
+                ${r.watermarkedSrc
+                    ? `<img src="${r.watermarkedSrc}" alt="${r.scientific}" style="width: 100px; height: 80px; object-fit: cover; border: 1px solid #cbd5e1;" />`
+                    : 'No Image'}
+            </td>
         </tr>
     `).join('');
 
@@ -284,20 +345,26 @@ function openPdfModal() {
     printWindow.document.write(`
         <html>
         <head>
-            <title>CoralKita Educator Report</title>
+            <link rel="icon" href="${faviconUrl}" type="image/png">
+            <title>CoralKita Coral Report</title>
             <style>
                 body { font-family: Arial, sans-serif; color: #0f172a; margin: 24px; }
-                h1 { margin: 0 0 8px 0; font-size: 22px; }
+                .report-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+                .report-header img { height: 48px; width: auto; border-radius: 10px; border: 1px solid #cbd5e1; }
+                .report-header h1 { margin: 0; font-size: 22px; }
                 .meta { margin-bottom: 16px; color: #475569; font-size: 13px; }
                 table { width: 100%; border-collapse: collapse; font-size: 12px; }
                 th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; }
                 th { background: #f1f5f9; }
-                .footer { margin-top: 14px; font-size: 11px; color: #64748b; }
+                .footer-bottom-bar { margin-top: 14px; font-size: 11px; color: #64748b; }
                 @page { size: A4; margin: 16mm; }
             </style>
         </head>
         <body>
-            <h1>CoralKita Educator Coral Report</h1>
+            <div class="report-header">
+                <img src="${faviconUrl}" alt="CoralKita Logo">
+                <h1>CoralKita Coral Report</h1>
+            </div>
             <div class="meta">Generated on ${generatedAt} | Total entries: ${rows.length}</div>
             <table>
                 <thead>
@@ -308,18 +375,74 @@ function openPdfModal() {
                         <th>Health Status</th>
                         <th>IUCN Status</th>
                         <th>Confidence</th>
+                        <th>Image</th>
                     </tr>
                 </thead>
                 <tbody>${htmlRows}</tbody>
             </table>
-            <div class="footer">Tip: use "Save as PDF" in your browser print dialog.</div>
+            <div class="footer-bottom-bar">
+                <p>&copy; 2026 CoralKita - Even The Oceans Need Hugs</p>
+                <div class="footer-legal-links">
+                    <a href="https://www.umt.edu.my/" target="_blank">Powered by UMT</a>
+                </div>
+            </div>
         </body>
         </html>
     `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => printWindow.print(), 250);
+
+    // Slight delay to allow images to render in some browsers
+    setTimeout(() => printWindow.print(), 500);
 }
+
+// Apply visible watermark overlays on page images that have `data-uploader-name`.
+function applyPageWatermarks() {
+    const containers = document.querySelectorAll('[data-uploader-name]');
+    containers.forEach(container => {
+        try {
+            const uploader = (container.dataset.uploaderName || '').trim();
+            if (!uploader) return;
+            const img = container.querySelector('img');
+            if (!img) return;
+
+            // Avoid adding duplicate overlays
+            if (container.querySelector('.watermark-overlay')) return;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'watermark-overlay';
+            overlay.textContent = `© CoralKita | ${uploader}`;
+            // Basic styling for visibility and non-intrusiveness
+            Object.assign(overlay.style, {
+                position: 'absolute',
+                right: '8px',
+                bottom: '8px',
+                background: 'rgba(0,0,0,0.45)',
+                color: '#fff',
+                padding: '4px 8px',
+                fontSize: '12px',
+                borderRadius: '4px',
+                pointerEvents: 'none',
+                zIndex: 5,
+                mixBlendMode: 'normal'
+            });
+
+            // Ensure the container is positioned for absolute overlay
+            const computed = window.getComputedStyle(container);
+            if (computed.position === 'static' || !computed.position) {
+                container.style.position = 'relative';
+            }
+
+            container.appendChild(overlay);
+        } catch (e) {
+            // ignore overlay failures
+            console.error('Watermark overlay failed', e);
+        }
+    });
+}
+
+// Run on page load to watermark all images displayed on pages
+window.addEventListener('load', applyPageWatermarks);
 
 /* ─────────────────────────────────────────────────────────────
    3. EDUCATOR DASHBOARD - FILTERING
@@ -331,7 +454,6 @@ const eduFilterState = {
 };
 
 function eduFilter(value, chipEl) {
-    const groupGenus = ['Acropora', 'Montipora', 'Porites'];
     const groupHealth = ['Bleaching', 'Non-Bleaching'];
 
     if (value === 'all') {
@@ -362,9 +484,8 @@ function eduFilter(value, chipEl) {
         }
     }
 
-    // Filter cards
+    // Filter only the coral card gallery. The statistics table should remain unchanged.
     const cards = document.querySelectorAll('#edu-gallery .edu-card');
-    const rows = document.querySelectorAll('#edu-stats-table tbody tr');
     let visibleCount = 0;
 
     cards.forEach(card => {
@@ -376,14 +497,6 @@ function eduFilter(value, chipEl) {
 
         card.classList.toggle('hidden', !show);
         if (show) visibleCount += 1;
-    });
-
-    rows.forEach(row => {
-        const genus = (row.dataset.genus || '').trim();
-        const health = (row.dataset.health || '').trim();
-        const genusMatch = eduFilterState.genus === 'all' || genus === eduFilterState.genus;
-        const healthMatch = eduFilterState.health === 'all' || health === eduFilterState.health;
-        row.style.display = (genusMatch && healthMatch) ? '' : 'none';
     });
 
     const countEl = document.getElementById('edu-count');
@@ -482,19 +595,19 @@ function getMarkerColor(sstValue, dhw = 0) {
         return '#facc15'; // Bleaching Watch
     }
 
-    if (dhw <= 0) {
-        return '#facc15'; // Still a watch if hotspot is above baseline but DHW has not accumulated
+    if (dhw >= 8) {
+        return '#7f1d1d'; // Alert Level 2
     }
 
-    if (dhw < 4) {
-        return '#f97316'; // Bleaching Warning
-    }
-
-    if (dhw < 8) {
+    if (dhw >= 4) {
         return '#ef4444'; // Alert Level 1
     }
 
-    return '#7f1d1d'; // Alert Level 2
+    if (dhw > 0) {
+        return '#f97316'; // Bleaching Warning
+    }
+
+    return '#facc15'; // Bleaching Watch when hotspot >= 1 but DHW has not accumulated yet
 }
 
 function initMap() {
@@ -536,12 +649,11 @@ function initMap() {
             className: 'sst-popup'
         }).setHTML(`
             <div style="
-                background: #062030;
-                border: 1px solid rgba(12,184,182,0.4);
+                background: #fdfdfa;
                 border-radius: 8px;
                 padding: 10px 14px;
                 font-family: 'DM Sans', sans-serif;
-                color: #f0f4f5;
+                color: #062030;
                 min-width: 160px;
             ">
                 <div style="font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#0cb8b6;">
@@ -549,6 +661,9 @@ function initMap() {
                 </div>
                 <div style="font-size:0.78rem; margin-bottom:3px;">
                     SST: <strong>${region.sstValue.toFixed(2)}°C</strong>
+                </div>
+                <div style="font-size:0.78rem; margin-bottom:3px;">
+                    Hotspot: <strong>${region.hotspot.toFixed(2)}°C</strong>
                 </div>
                 <div style="font-size:0.78rem; margin-bottom:3px;">
                     Corals: <strong>${region.coralCount}</strong>
@@ -771,7 +886,7 @@ const setupViewDetails = () => {
                     const coral = data.coral;
                     let details = `Coral ID: ${coral.coralID}\n`;
                     details += `Scientific Name: ${coral.genus} ${coral.species}\n`;
-                    details += `Region: ${coral.regionName || 'N/A'}\n`;
+                    details += `Location (photo taken): ${coral.regionName || 'N/A'}\n`;
                     details += `Growth Form: ${coral.growthFormName || 'N/A'}\n`;
                     details += `Temperature Range: ${coral.waterTempMin || 'N/A'}°C - ${coral.waterTempMax || 'N/A'}°C\n`;
                     details += `pH Range: ${coral.pHMin || 'N/A'} - ${coral.pHMax || 'N/A'}\n`;

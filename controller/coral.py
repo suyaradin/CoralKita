@@ -17,6 +17,7 @@ from dao.CoralImageDAO import addCoralImage, getImagesByCoralID
 from dao.ClassificationDAO import createClassification
 from dao.ReviewDAO import createReview, approveReviewWithDetails, rejectReviewWithDetails
 from dao.HealthStatusDAO import getHealthStatusByName
+from dao.RoleDAO import RoleConstants
 from dao.UserDAO import getNotificationRecipients
 from dao.RegionDAO import getRegionByID
 
@@ -439,7 +440,7 @@ def approve_review(reviewID: int):
         return {"success": False, "error": "Not logged in"}, 401
     
     # Authorization check
-    if session.get("role_id") != ROLE_SCIENTIFIC_REVIEWER:
+    if session.get("role_id") != RoleConstants.SCIENTIFIC_REVIEWER:
         return {"success": False, "error": "Unauthorized"}, 403
     
     # Get IUCN ID from request
@@ -482,7 +483,7 @@ def reject_review(reviewID: int):
         return {"success": False, "error": "Not logged in"}, 401
     
     # Authorization check
-    if session.get("role_id") != ROLE_SCIENTIFIC_REVIEWER:
+    if session.get("role_id") != RoleConstants.SCIENTIFIC_REVIEWER:
         return {"success": False, "error": "Unauthorized"}, 403
     
     # Get rejection reason
