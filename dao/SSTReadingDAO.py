@@ -40,7 +40,7 @@ def createSSTReading(regionID: int, sstValue: float, recordedAt: datetime = None
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO SSTReading (regionID, sstValue, recordedAt)
+            INSERT INTO sstreading (regionID, sstValue, recordedAt)
             VALUES (%s, %s, %s)
             """,
             (regionID, sstValue, recordedAt)
@@ -79,7 +79,7 @@ def bulkCreateSSTReadings(readings: list[tuple]) -> list[int]:
     try:
         cursor = conn.cursor()
         sql = """
-            INSERT INTO SSTReading (regionID, sstValue, recordedAt)
+            INSERT INTO sstreading (regionID, sstValue, recordedAt)
             VALUES (%s, %s, %s)
         """
         cursor.executemany(sql, readings)
@@ -126,7 +126,7 @@ def getReadingByID(sstID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM SSTReading WHERE sstID = %s LIMIT 1",
+            "SELECT * FROM sstreading WHERE sstID = %s LIMIT 1",
             (sstID,)
         )
         return cursor.fetchone()
@@ -162,7 +162,7 @@ def getLatestReadingByRegion(regionID: int) -> dict | None:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM SSTReading
+            SELECT * FROM sstreading
             WHERE regionID = %s
             ORDER BY recordedAt DESC
             LIMIT 1
@@ -204,7 +204,7 @@ def getTodayReadingByRegion(regionID: int) -> dict | None:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM SSTReading
+            SELECT * FROM sstreading
             WHERE regionID = %s AND DATE(recordedAt) = CURDATE()
             LIMIT 1
             """,
@@ -250,14 +250,14 @@ def getReadingsByRegion(regionID: int, startDate: datetime = None, limit: int = 
         
         if startDate is None:
             query = """
-                SELECT * FROM SSTReading
+                SELECT * FROM sstreading
                 WHERE regionID = %s
                 ORDER BY recordedAt DESC
             """
             params = [regionID]
         else:
             query = """
-                SELECT * FROM SSTReading
+                SELECT * FROM sstreading
                 WHERE regionID = %s AND recordedAt >= %s
                 ORDER BY recordedAt DESC
             """
@@ -301,7 +301,7 @@ def getRecentReadings(regionID: int, weeks: int = 12) -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM SSTReading
+            SELECT * FROM sstreading
             WHERE regionID = %s
               AND recordedAt >= DATE_SUB(NOW(), INTERVAL %s WEEK)
             ORDER BY recordedAt DESC
@@ -344,7 +344,7 @@ def getReadingsByDateRange(startDate: datetime, endDate: datetime, regionID: int
         
         if regionID:
             query = """
-                SELECT * FROM SSTReading
+                SELECT * FROM sstreading
                 WHERE regionID = %s
                   AND recordedAt BETWEEN %s AND %s
                 ORDER BY recordedAt DESC
@@ -352,7 +352,7 @@ def getReadingsByDateRange(startDate: datetime, endDate: datetime, regionID: int
             cursor.execute(query, (regionID, startDate, endDate))
         else:
             query = """
-                SELECT * FROM SSTReading
+                SELECT * FROM sstreading
                 WHERE recordedAt BETWEEN %s AND %s
                 ORDER BY recordedAt DESC
             """
@@ -409,7 +409,7 @@ def getAverageSSTByRegion(regionID: int, days: int = 30) -> float | None:
         cursor.execute(
             """
             SELECT AVG(sstValue) as avg_sst
-            FROM SSTReading
+            FROM sstreading
             WHERE regionID = %s
               AND recordedAt >= DATE_SUB(NOW(), INTERVAL %s DAY)
             """,
@@ -446,7 +446,7 @@ def getMaxSSTByRegion(regionID: int, days: int = 30) -> float | None:
         cursor.execute(
             """
             SELECT MAX(sstValue) as max_sst
-            FROM SSTReading
+            FROM sstreading
             WHERE regionID = %s
               AND recordedAt >= DATE_SUB(NOW(), INTERVAL %s DAY)
             """,
@@ -483,7 +483,7 @@ def getMinSSTByRegion(regionID: int, days: int = 30) -> float | None:
         cursor.execute(
             """
             SELECT MIN(sstValue) as min_sst
-            FROM SSTReading
+            FROM sstreading
             WHERE regionID = %s
               AND recordedAt >= DATE_SUB(NOW(), INTERVAL %s DAY)
             """,
@@ -577,7 +577,7 @@ def getHotspotCount(regionID: int, threshold: float = 29.0) -> int:
         cursor.execute(
             """
             SELECT COUNT(*) as hotspot_count
-            FROM SSTReading
+            FROM sstreading
             WHERE regionID = %s AND sstValue > %s
             """,
             (regionID, threshold)
@@ -614,7 +614,7 @@ def readingExists(sstID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM SSTReading WHERE sstID = %s",
+            "SELECT COUNT(*) FROM sstreading WHERE sstID = %s",
             (sstID,)
         )
         result = cursor.fetchone()
@@ -659,7 +659,7 @@ def getReadingCountByRegion(regionID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM SSTReading WHERE regionID = %s",
+            "SELECT COUNT(*) FROM sstreading WHERE regionID = %s",
             (regionID,)
         )
         result = cursor.fetchone()
@@ -696,7 +696,7 @@ def updateSSTReading(sstID: int, sstValue: float) -> bool:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE SSTReading
+            UPDATE sstreading
             SET sstValue = %s
             WHERE sstID = %s
             """,
@@ -735,7 +735,7 @@ def deleteReading(sstID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM SSTReading WHERE sstID = %s",
+            "DELETE FROM sstreading WHERE sstID = %s",
             (sstID,)
         )
         conn.commit()
@@ -767,7 +767,7 @@ def deleteReadingsByRegion(regionID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM SSTReading WHERE regionID = %s",
+            "DELETE FROM sstreading WHERE regionID = %s",
             (regionID,)
         )
         conn.commit()
@@ -804,7 +804,7 @@ def deleteOldReadings(days: int = 90) -> int:
         cursor = conn.cursor()
         cursor.execute(
             """
-            DELETE FROM SSTReading
+            DELETE FROM sstreading
             WHERE recordedAt < DATE_SUB(NOW(), INTERVAL %s DAY)
             """,
             (days,)

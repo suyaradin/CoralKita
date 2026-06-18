@@ -34,7 +34,7 @@ def createReview(classID: int) -> int | None:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO Review (classID) VALUES (%s)",
+            "INSERT INTO review (classID) VALUES (%s)",
             (classID,)
         )
         conn.commit()
@@ -81,9 +81,9 @@ def getReviewByID(reviewID: int) -> dict | None:
                 cl.healthID, 
                 cl.confidenceScore, 
                 h.healthName
-            FROM Review r
-            JOIN Classification cl ON r.classID = cl.classID
-            LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
+            FROM review r
+            JOIN classification cl ON r.classID = cl.classID
+            LEFT JOIN healthstatus h ON cl.healthID = h.healthID
             WHERE r.reviewID = %s
         """
         cursor.execute(sql, (reviewID,))
@@ -114,7 +114,7 @@ def getReviewByClassID(classID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Review WHERE classID = %s ORDER BY reviewID DESC LIMIT 1",
+            "SELECT * FROM review WHERE classID = %s ORDER BY reviewID DESC LIMIT 1",
             (classID,)
         )
         return cursor.fetchone()
@@ -152,7 +152,7 @@ def getReviewsByStatus(reviewStatus: str) -> list[dict]:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Review WHERE reviewStatus = %s ORDER BY updatedAt DESC",
+            "SELECT * FROM review WHERE reviewStatus = %s ORDER BY updatedAt DESC",
             (reviewStatus,)
         )
         return cursor.fetchall()
@@ -219,8 +219,8 @@ def getReviewsByReviewer(reviewerID: int) -> list[dict]:
         cursor.execute(
             """
             SELECT r.*, u.username as reviewedByName
-            FROM Review r
-            LEFT JOIN Users u ON r.reviewedBy = u.userID
+            FROM review r
+            LEFT JOIN users u ON r.reviewedBy = u.userID
             WHERE r.reviewedBy = %s
             ORDER BY r.reviewedAt DESC
             """,
@@ -279,14 +279,14 @@ def getReviewsWithCoralDetails() -> list[dict]:
                 u.username as submittedBy,
                 u.userID as submittedByID,
                 reviewer.username as reviewedByName
-            FROM Review r
-            JOIN Classification cl ON r.classID = cl.classID
-            JOIN HealthStatus h ON cl.healthID = h.healthID
-            JOIN CoralImage ci ON cl.imageID = ci.imageID
-            JOIN Coral c ON ci.coralID = c.coralID
-            JOIN Region reg ON c.regionID = reg.regionID
-            JOIN Users u ON ci.uploadBy = u.userID
-            LEFT JOIN Users reviewer ON r.reviewedBy = reviewer.userID
+            FROM review r
+            JOIN classification cl ON r.classID = cl.classID
+            JOIN healthstatus h ON cl.healthID = h.healthID
+            JOIN coralimage ci ON cl.imageID = ci.imageID
+            JOIN coral c ON ci.coralID = c.coralID
+            JOIN region reg ON c.regionID = reg.regionID
+            JOIN users u ON ci.uploadBy = u.userID
+            LEFT JOIN users reviewer ON r.reviewedBy = reviewer.userID
             ORDER BY r.reviewStatus ASC, ci.uploadDate DESC
         """
         cursor.execute(sql)
@@ -336,13 +336,13 @@ def getUserSubmissionsWithStatus(userID: int) -> list[dict]:
                 r.reviewedAt,
                 ci.imagePath,
                 reviewer.username as reviewedBy
-            FROM Coral c
-            JOIN Region reg ON c.regionID = reg.regionID
-            JOIN CoralImage ci ON c.coralID = ci.coralID
-            JOIN Classification cl ON ci.imageID = cl.imageID
-            LEFT JOIN Review r ON cl.classID = r.classID
-            LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
-            LEFT JOIN Users reviewer ON r.reviewedBy = reviewer.userID
+            FROM coral c
+            JOIN region reg ON c.regionID = reg.regionID
+            JOIN coralimage ci ON c.coralID = ci.coralID
+            JOIN classification cl ON ci.imageID = cl.imageID
+            LEFT JOIN review r ON cl.classID = r.classID
+            LEFT JOIN healthstatus h ON cl.healthID = h.healthID
+            LEFT JOIN users reviewer ON r.reviewedBy = reviewer.userID
             WHERE c.submittedBy = %s
             GROUP BY c.coralID
             ORDER BY c.submittedAt DESC
@@ -399,7 +399,7 @@ def getReviewStatistics() -> dict:
                 SUM(CASE WHEN reviewStatus = 'pending' THEN 1 ELSE 0 END) as pending,
                 SUM(CASE WHEN reviewStatus = 'approved' THEN 1 ELSE 0 END) as approved,
                 SUM(CASE WHEN reviewStatus = 'rejected' THEN 1 ELSE 0 END) as rejected
-            FROM Review
+            FROM review
             """
         )
         result = cursor.fetchone()
@@ -430,7 +430,7 @@ def getReviewStatistics() -> dict:
 # 5. UPDATE OPERATIONS (Review Workflow)
 # ============================================================================
 
-def updateReview(
+def UPDATE review(
     reviewID: int,
     reviewStatus: str,
     reviewedBy: int,
@@ -438,7 +438,7 @@ def updateReview(
     rejectionReason: str = None
 ) -> bool:
     """
-    Update review status with reviewer information.
+    UPDATE review status with reviewer information.
     
     Args:
         reviewID: ID of the review to update
@@ -456,7 +456,7 @@ def updateReview(
     try:
         cursor = conn.cursor()
         sql = """
-            UPDATE Review
+            UPDATE review
             SET reviewStatus = %s,
                 reviewedBy = %s,
                 reviewedAt = NOW(),
@@ -471,7 +471,7 @@ def updateReview(
         conn.commit()
         return cursor.rowcount > 0
     except mysql.connector.Error as e:
-        print(f"Database error in updateReview: {e}")
+        print(f"Database error in UPDATE review: {e}")
         conn.rollback()
         return False
     finally:
@@ -510,9 +510,9 @@ def approveReviewWithDetails(reviewID: int, reviewerID: int, iucnID: int = None)
             cursor.execute(
                 """
                 SELECT ci.coralID
-                FROM Review r
-                JOIN Classification cl ON r.classID = cl.classID
-                JOIN CoralImage ci ON cl.imageID = ci.imageID
+                FROM review r
+                JOIN classification cl ON r.classID = cl.classID
+                JOIN coralimage ci ON cl.imageID = ci.imageID
                 WHERE r.reviewID = %s
                 LIMIT 1
                 """,
@@ -529,9 +529,9 @@ def approveReviewWithDetails(reviewID: int, reviewerID: int, iucnID: int = None)
             cursor.execute(
                 """
                 SELECT prev.iucnID
-                FROM Review prev
-                JOIN Classification pcl ON prev.classID = pcl.classID
-                JOIN CoralImage pci ON pcl.imageID = pci.imageID
+                FROM review prev
+                JOIN classification pcl ON prev.classID = pcl.classID
+                JOIN coralimage pci ON pcl.imageID = pci.imageID
                 WHERE prev.reviewStatus = 'approved'
                   AND prev.iucnID IS NOT NULL
                   AND pci.coralID = %s
@@ -550,7 +550,7 @@ def approveReviewWithDetails(reviewID: int, reviewerID: int, iucnID: int = None)
         
         # Proceed with approval
         sql = """
-            UPDATE Review
+            UPDATE review
             SET reviewStatus = 'approved',
                 reviewedBy = %s,
                 reviewedAt = NOW(),
@@ -594,7 +594,7 @@ def rejectReviewWithDetails(reviewID: int, reviewerID: int, rejectionReason: str
     try:
         cursor = conn.cursor()
         sql = """
-            UPDATE Review
+            UPDATE review
             SET reviewStatus = 'rejected',
                 reviewedBy = %s,
                 reviewedAt = NOW(),
@@ -639,7 +639,7 @@ def bulkApproveReviews(reviewIDs: list[int], reviewerID: int, iucnID: int = None
         
         for reviewID in reviewIDs:
             sql = """
-                UPDATE Review
+                UPDATE review
                 SET reviewStatus = 'approved',
                     reviewedBy = %s,
                     reviewedAt = NOW(),
@@ -683,7 +683,7 @@ def deleteReview(reviewID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Review WHERE reviewID = %s",
+            "DELETE FROM review WHERE reviewID = %s",
             (reviewID,)
         )
         conn.commit()
@@ -715,7 +715,7 @@ def deleteReviewsByClassID(classID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Review WHERE classID = %s",
+            "DELETE FROM review WHERE classID = %s",
             (classID,)
         )
         conn.commit()

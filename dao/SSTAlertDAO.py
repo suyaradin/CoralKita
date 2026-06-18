@@ -279,7 +279,7 @@ def getAllAlerts(limit: int = 100) -> list[dict]:
             """
             SELECT a.*, r.regionName
             FROM sstalert a
-            JOIN Region r ON a.regionID = r.regionID
+            JOIN region r ON a.regionID = r.regionID
             ORDER BY a.sentAt DESC
             LIMIT %s
             """,
@@ -315,7 +315,7 @@ def getAlertsByLevel(alertLevel: str) -> list[dict]:
             """
             SELECT a.*, r.regionName
             FROM sstalert a
-            JOIN Region r ON a.regionID = r.regionID
+            JOIN region r ON a.regionID = r.regionID
             WHERE a.alertLevel = %s
             ORDER BY a.sentAt DESC
             """,
@@ -628,7 +628,7 @@ def getMostAffectedRegion() -> dict | None:
                 r.regionName,
                 COUNT(a.alertID) as alert_count
             FROM sstalert a
-            JOIN Region r ON a.regionID = r.regionID
+            JOIN region r ON a.regionID = r.regionID
             GROUP BY r.regionID, r.regionName
             ORDER BY alert_count DESC
             LIMIT 1

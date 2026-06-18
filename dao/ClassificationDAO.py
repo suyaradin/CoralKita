@@ -19,7 +19,7 @@ def createClassification(imageID: int, healthID: int, confidenceScore: float) ->
     
     Args:
         imageID: ID of the coral image being classified
-        healthID: ID of the health status (from HealthStatus table)
+        healthID: ID of the health status (FROM healthstatus table)
         confidenceScore: Confidence score of the classification (0-100)
     
     Returns:
@@ -32,7 +32,7 @@ def createClassification(imageID: int, healthID: int, confidenceScore: float) ->
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO Classification (imageID, healthID, confidenceScore)
+            INSERT INTO classification (imageID, healthID, confidenceScore)
             VALUES (%s, %s, %s)
             """,
             (imageID, healthID, confidenceScore)
@@ -70,7 +70,7 @@ def getClassificationByID(classID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Classification WHERE classID = %s LIMIT 1",
+            "SELECT * FROM classification WHERE classID = %s LIMIT 1",
             (classID,)
         )
         return cursor.fetchone()
@@ -101,7 +101,7 @@ def getLatestClassificationByImageID(imageID: int) -> dict | None:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM Classification
+            SELECT * FROM classification
             WHERE imageID = %s
             ORDER BY classID DESC
             LIMIT 1
@@ -140,7 +140,7 @@ def getClassificationsByImageID(imageID: int) -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM Classification
+            SELECT * FROM classification
             WHERE imageID = %s
             ORDER BY classID DESC
             """,
@@ -175,7 +175,7 @@ def getClassificationsByHealthID(healthID: int, limit: int = 100) -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM Classification
+            SELECT * FROM classification
             WHERE healthID = %s
             ORDER BY classID DESC
             LIMIT %s
@@ -211,7 +211,7 @@ def getClassificationsByConfidenceRange(min_confidence: float, max_confidence: f
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM Classification
+            SELECT * FROM classification
             WHERE confidenceScore BETWEEN %s AND %s
             ORDER BY confidenceScore DESC
             """,
@@ -250,7 +250,7 @@ def updateClassificationConfidence(classID: int, new_confidence: float) -> bool:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE Classification
+            UPDATE classification
             SET confidenceScore = %s
             WHERE classID = %s
             """,
@@ -287,7 +287,7 @@ def updateClassificationHealth(classID: int, new_healthID: int) -> bool:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE Classification
+            UPDATE classification
             SET healthID = %s
             WHERE classID = %s
             """,
@@ -326,7 +326,7 @@ def deleteClassification(classID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Classification WHERE classID = %s",
+            "DELETE FROM classification WHERE classID = %s",
             (classID,)
         )
         conn.commit()
@@ -358,7 +358,7 @@ def deleteClassificationsByImageID(imageID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Classification WHERE imageID = %s",
+            "DELETE FROM classification WHERE imageID = %s",
             (imageID,)
         )
         conn.commit()
@@ -396,7 +396,7 @@ def getAverageConfidenceByHealthID(healthID: int) -> float | None:
         cursor.execute(
             """
             SELECT AVG(confidenceScore) as avg_confidence
-            FROM Classification
+            FROM classification
             WHERE healthID = %s
             """,
             (healthID,)
@@ -429,7 +429,7 @@ def getClassificationCountByHealthID(healthID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM Classification WHERE healthID = %s",
+            "SELECT COUNT(*) FROM classification WHERE healthID = %s",
             (healthID,)
         )
         result = cursor.fetchone()

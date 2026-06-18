@@ -35,7 +35,7 @@ def getIUCNStatusByID(iucnID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM IUCNStatus WHERE iucnID = %s LIMIT 1",
+            "SELECT * FROM iucnstatus WHERE iucnID = %s LIMIT 1",
             (iucnID,)
         )
         return cursor.fetchone()
@@ -70,7 +70,7 @@ def getIUCNStatusByName(iucnName: str) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM IUCNStatus WHERE iucnName = %s LIMIT 1",
+            "SELECT * FROM iucnstatus WHERE iucnName = %s LIMIT 1",
             (iucnName,)
         )
         return cursor.fetchone()
@@ -105,7 +105,7 @@ def getIUCNStatusByCode(code: str) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM IUCNStatus WHERE code = %s LIMIT 1",
+            "SELECT * FROM iucnstatus WHERE code = %s LIMIT 1",
             (code,)
         )
         return cursor.fetchone()
@@ -144,7 +144,7 @@ def getAllIUCNStatuses() -> list[dict]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM IUCNStatus ORDER BY iucnName")
+        cursor.execute("SELECT * FROM iucnstatus ORDER BY iucnName")
         return cursor.fetchall()
     except mysql.connector.Error as e:
         print(f"Database error in getAllIUCNStatuses: {e}")
@@ -198,7 +198,7 @@ def getIUCNStatusesByThreatLevel() -> list[dict]:
         """
         
         cursor.execute(f"""
-            SELECT * FROM IUCNStatus
+            SELECT * FROM iucnstatus
             ORDER BY {threat_order}
         """)
         return cursor.fetchall()
@@ -234,7 +234,7 @@ def getThreatenedIUCNStatuses() -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM IUCNStatus
+            SELECT * FROM iucnstatus
             WHERE iucnName IN ('Vulnerable', 'Endangered', 'Critically Endangered')
             ORDER BY 
                 CASE iucnName
@@ -275,7 +275,7 @@ def iucnStatusExists(iucnID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM IUCNStatus WHERE iucnID = %s",
+            "SELECT COUNT(*) FROM iucnstatus WHERE iucnID = %s",
             (iucnID,)
         )
         result = cursor.fetchone()
@@ -343,7 +343,7 @@ def getIUCNStatusIDMap() -> dict[str, int]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT iucnID, iucnName FROM IUCNStatus")
+        cursor.execute("SELECT iucnID, iucnName FROM iucnstatus")
         rows = cursor.fetchall()
         for row in rows:
             result[row['iucnName']] = row['iucnID']
@@ -376,7 +376,7 @@ def getIUCNStatusCodeMap() -> dict[str, int]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT iucnID, code FROM IUCNStatus WHERE code IS NOT NULL")
+        cursor.execute("SELECT iucnID, code FROM iucnstatus WHERE code IS NOT NULL")
         rows = cursor.fetchall()
         for row in rows:
             result[row['code']] = row['iucnID']
@@ -422,11 +422,11 @@ def getIUCNStatusDistribution() -> list[dict]:
                 i.iucnID,
                 i.iucnName,
                 COUNT(DISTINCT c.coralID) as coralCount
-            FROM IUCNStatus i
-            LEFT JOIN Review r ON i.iucnID = r.iucnID
-            LEFT JOIN Classification cl ON r.classID = cl.classID
-            LEFT JOIN CoralImage ci ON cl.imageID = ci.imageID
-            LEFT JOIN Coral c ON ci.coralID = c.coralID
+            FROM iucnstatus i
+            LEFT JOIN review r ON i.iucnID = r.iucnID
+            LEFT JOIN classification cl ON r.classID = cl.classID
+            LEFT JOIN coralimage ci ON cl.imageID = ci.imageID
+            LEFT JOIN coral c ON ci.coralID = c.coralID
             WHERE r.reviewStatus = 'approved'
             GROUP BY i.iucnID, i.iucnName
             ORDER BY coralCount DESC
@@ -455,7 +455,7 @@ def getTotalIUCNStatusCount() -> int:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM IUCNStatus")
+        cursor.execute("SELECT COUNT(*) FROM iucnstatus")
         result = cursor.fetchone()
         return result[0] if result else 0
     except mysql.connector.Error as e:
@@ -491,11 +491,11 @@ def getMostCommonIUCNStatus() -> dict | None:
                 i.iucnID,
                 i.iucnName,
                 COUNT(DISTINCT c.coralID) as coralCount
-            FROM IUCNStatus i
-            JOIN Review r ON i.iucnID = r.iucnID
-            JOIN Classification cl ON r.classID = cl.classID
-            JOIN CoralImage ci ON cl.imageID = ci.imageID
-            JOIN Coral c ON ci.coralID = c.coralID
+            FROM iucnstatus i
+            JOIN review r ON i.iucnID = r.iucnID
+            JOIN classification cl ON r.classID = cl.classID
+            JOIN coralimage ci ON cl.imageID = ci.imageID
+            JOIN coral c ON ci.coralID = c.coralID
             WHERE r.reviewStatus = 'approved'
             GROUP BY i.iucnID, i.iucnName
             ORDER BY coralCount DESC
@@ -536,7 +536,7 @@ def createIUCNStatus(iucnName: str, code: str = None, description: str = None) -
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO IUCNStatus (iucnName, code, description)
+            INSERT INTO iucnstatus (iucnName, code, description)
             VALUES (%s, %s, %s)
             """,
             (iucnName, code, description)
@@ -574,7 +574,7 @@ def updateIUCNStatus(iucnID: int, iucnName: str, code: str = None, description: 
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE IUCNStatus
+            UPDATE iucnstatus
             SET iucnName = %s,
                 code = %s,
                 description = %s
@@ -612,7 +612,7 @@ def deleteIUCNStatus(iucnID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM IUCNStatus WHERE iucnID = %s",
+            "DELETE FROM iucnstatus WHERE iucnID = %s",
             (iucnID,)
         )
         conn.commit()

@@ -218,7 +218,7 @@ def process_coral_classification(image_path: str) -> tuple[str, float]:
 
 def create_coral_record(form_data: dict, user_id: int, original_coral_id: int | None = None) -> int | None:
     """
-    Create or update coral record.
+    Create or UPDATE coral record.
     
     Args:
         form_data: Dictionary containing form fields
@@ -274,7 +274,7 @@ def save_coral_submission(
         # Save image
         filename, filepath = save_uploaded_image(image_file, app_root)
         
-        # Create/update coral record
+        # Create/UPDATE coral record
         coral_id = create_coral_record(form_data, user_id, original_coral_id)
         if not coral_id:
             return False, "Failed to create coral entry", None
@@ -526,10 +526,10 @@ def view_coral(coralID: int):
             
             sql = """
                 SELECT r.reviewStatus, r.rejectionReason, i.iucnName
-                FROM Review r
-                JOIN Classification cl ON r.classID = cl.classID
-                JOIN CoralImage ci ON cl.imageID = ci.imageID
-                LEFT JOIN IUCNStatus i ON r.iucnID = i.iucnID
+                FROM review r
+                JOIN classification cl ON r.classID = cl.classID
+                JOIN coralimage ci ON cl.imageID = ci.imageID
+                LEFT JOIN iucnstatus i ON r.iucnID = i.iucnID
                 WHERE ci.coralID = %s
                 ORDER BY r.reviewedAt DESC, r.reviewID DESC
                 LIMIT 1

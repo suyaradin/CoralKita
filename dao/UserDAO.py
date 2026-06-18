@@ -36,7 +36,7 @@ def createUser(name: str, email: str, password: str, roleID: int) -> int | None:
     try:
         cursor = conn.cursor()
         sql = """
-            INSERT INTO Users (username, email, password, roleID)
+            INSERT INTO users (username, email, password, roleID)
             VALUES (%s, %s, %s, %s)
         """
         cursor.execute(sql, (name, email, password, roleID))
@@ -74,7 +74,7 @@ def bulkCreateUsers(users: list[tuple]) -> list[int]:
     try:
         cursor = conn.cursor()
         sql = """
-            INSERT INTO Users (username, email, password, roleID)
+            INSERT INTO users (username, email, password, roleID)
             VALUES (%s, %s, %s, %s)
         """
         cursor.executemany(sql, users)
@@ -122,7 +122,7 @@ def getByID(userID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Users WHERE userID = %s LIMIT 1",
+            "SELECT * FROM users WHERE userID = %s LIMIT 1",
             (userID,)
         )
         return cursor.fetchone()
@@ -157,7 +157,7 @@ def getByEmail(email: str) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Users WHERE email = %s LIMIT 1",
+            "SELECT * FROM users WHERE email = %s LIMIT 1",
             (email,)
         )
         return cursor.fetchone()
@@ -194,8 +194,8 @@ def getUserWithRole(userID: int) -> dict | None:
         cursor.execute(
             """
             SELECT u.*, r.roleName
-            FROM Users u
-            JOIN Role r ON u.roleID = r.roleID
+            FROM users u
+            JOIN role r ON u.roleID = r.roleID
             WHERE u.userID = %s
             LIMIT 1
             """,
@@ -236,8 +236,8 @@ def getAllUsers() -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         sql = """
             SELECT u.userID, u.username, u.email, u.roleID, r.roleName
-            FROM Users u
-            JOIN Role r ON u.roleID = r.roleID
+            FROM users u
+            JOIN role r ON u.roleID = r.roleID
             ORDER BY u.userID
         """
         cursor.execute(sql)
@@ -278,7 +278,7 @@ def getNotificationRecipients(role_ids: tuple[int, ...] = NOTIFICATION_ROLE_IDS)
         cursor.execute(
             f"""
             SELECT userID, username, email, roleID
-            FROM Users
+            FROM users
             WHERE roleID IN ({placeholders})
               AND email IS NOT NULL
               AND TRIM(email) <> ''
@@ -327,7 +327,7 @@ def getUsersByRole(roleID: int) -> list[dict]:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Users WHERE roleID = %s ORDER BY username",
+            "SELECT * FROM users WHERE roleID = %s ORDER BY username",
             (roleID,)
         )
         return cursor.fetchall()
@@ -364,8 +364,8 @@ def getUsersByRoleName(roleName: str) -> list[dict]:
         cursor.execute(
             """
             SELECT u.*
-            FROM Users u
-            JOIN Role r ON u.roleID = r.roleID
+            FROM users u
+            JOIN role r ON u.roleID = r.roleID
             WHERE r.roleName = %s
             ORDER BY u.username
             """,
@@ -405,8 +405,8 @@ def searchUsers(search_term: str) -> list[dict]:
         cursor.execute(
             """
             SELECT u.userID, u.username, u.email, u.roleID, r.roleName
-            FROM Users u
-            JOIN Role r ON u.roleID = r.roleID
+            FROM users u
+            JOIN role r ON u.roleID = r.roleID
             WHERE u.username LIKE %s OR u.email LIKE %s
             ORDER BY u.username
             """,
@@ -442,8 +442,8 @@ def getRecentlyJoinedUsers(days: int = 30, limit: int = 10) -> list[dict]:
         cursor.execute(
             """
             SELECT u.userID, u.username, u.email, u.roleID, r.roleName, u.createdAt
-            FROM Users u
-            JOIN Role r ON u.roleID = r.roleID
+            FROM users u
+            JOIN role r ON u.roleID = r.roleID
             WHERE u.createdAt >= DATE_SUB(NOW(), INTERVAL %s DAY)
             ORDER BY u.createdAt DESC
             LIMIT %s
@@ -487,7 +487,7 @@ def getRoleByName(roleName: str) -> int | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT roleID FROM Role WHERE LOWER(roleName) = LOWER(%s) LIMIT 1",
+            "SELECT roleID FROM role WHERE LOWER(roleName) = LOWER(%s) LIMIT 1",
             (roleName,)
         )
         row = cursor.fetchone()
@@ -524,7 +524,7 @@ def getRoleNameByID(roleID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT roleName FROM Role WHERE roleID = %s LIMIT 1",
+            "SELECT roleName FROM role WHERE roleID = %s LIMIT 1",
             (roleID,)
         )
         return cursor.fetchone()
@@ -556,7 +556,7 @@ def getRoleIDMap() -> dict[str, int]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT roleID, roleName FROM Role")
+        cursor.execute("SELECT roleID, roleName FROM role")
         rows = cursor.fetchall()
         for row in rows:
             result[row['roleName']] = row['roleID']
@@ -601,7 +601,7 @@ def updateUserProfile(userID: int, name: str, email: str, new_password_hash: str
         if new_password_hash is not None:
             cursor.execute(
                 """
-                UPDATE Users
+                UPDATE users
                 SET username = %s, email = %s, password = %s
                 WHERE userID = %s
                 """,
@@ -610,7 +610,7 @@ def updateUserProfile(userID: int, name: str, email: str, new_password_hash: str
         else:
             cursor.execute(
                 """
-                UPDATE Users
+                UPDATE users
                 SET username = %s, email = %s
                 WHERE userID = %s
                 """,
@@ -648,7 +648,7 @@ def updateUserRole(userID: int, new_roleID: int) -> bool:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE Users
+            UPDATE users
             SET roleID = %s
             WHERE userID = %s
             """,
@@ -685,7 +685,7 @@ def updateUserPassword(userID: int, new_password_hash: str) -> bool:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE Users
+            UPDATE users
             SET password = %s
             WHERE userID = %s
             """,
@@ -727,7 +727,7 @@ def deleteUser(userID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Users WHERE userID = %s",
+            "DELETE FROM users WHERE userID = %s",
             (userID,)
         )
         conn.commit()
@@ -761,7 +761,7 @@ def deleteUsersByRole(roleID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Users WHERE roleID = %s",
+            "DELETE FROM users WHERE roleID = %s",
             (roleID,)
         )
         conn.commit()
@@ -793,7 +793,7 @@ def getUserCount() -> int:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM Users")
+        cursor.execute("SELECT COUNT(*) FROM users")
         result = cursor.fetchone()
         return result[0] if result else 0
     except mysql.connector.Error as e:
@@ -822,7 +822,7 @@ def getUserCountByRole(roleID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM Users WHERE roleID = %s",
+            "SELECT COUNT(*) FROM users WHERE roleID = %s",
             (roleID,)
         )
         result = cursor.fetchone()
@@ -883,9 +883,9 @@ def getUsersWithoutActivity(days: int = 30) -> list[dict]:
         cursor.execute(
             """
             SELECT u.userID, u.username, u.email, u.roleID, r.roleName
-            FROM Users u
-            JOIN Role r ON u.roleID = r.roleID
-            LEFT JOIN Coral c ON u.userID = c.submittedBy
+            FROM users u
+            JOIN role r ON u.roleID = r.roleID
+            LEFT JOIN coral c ON u.userID = c.submittedBy
             WHERE u.lastLogin IS NULL 
                OR u.lastLogin < DATE_SUB(NOW(), INTERVAL %s DAY)
             GROUP BY u.userID

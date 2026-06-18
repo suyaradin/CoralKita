@@ -34,7 +34,7 @@ def getHealthStatusByID(healthID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM HealthStatus WHERE healthID = %s LIMIT 1",
+            "SELECT * FROM healthstatus WHERE healthID = %s LIMIT 1",
             (healthID,)
         )
         return cursor.fetchone()
@@ -69,7 +69,7 @@ def getHealthStatusByName(healthName: str) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM HealthStatus WHERE healthName = %s LIMIT 1",
+            "SELECT * FROM healthstatus WHERE healthName = %s LIMIT 1",
             (healthName,)
         )
         return cursor.fetchone()
@@ -136,7 +136,7 @@ def getAllHealthStatus() -> list[dict]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM HealthStatus ORDER BY healthName")
+        cursor.execute("SELECT * FROM healthstatus ORDER BY healthName")
         return cursor.fetchall()
     except mysql.connector.Error as e:
         print(f"Database error in getAllHealthStatus: {e}")
@@ -180,7 +180,7 @@ def getHealthStatusBySeverity(includeCritical: bool = True) -> list[dict]:
             where_clause = "WHERE healthName NOT IN ('Dead')"
         
         query = f"""
-            SELECT * FROM HealthStatus
+            SELECT * FROM healthstatus
             {where_clause}
             ORDER BY {severity_order}
         """
@@ -217,7 +217,7 @@ def healthStatusExists(healthID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM HealthStatus WHERE healthID = %s",
+            "SELECT COUNT(*) FROM healthstatus WHERE healthID = %s",
             (healthID,)
         )
         result = cursor.fetchone()
@@ -265,7 +265,7 @@ def getHealthStatusIDMap() -> dict[str, int]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT healthID, healthName FROM HealthStatus")
+        cursor.execute("SELECT healthID, healthName FROM healthstatus")
         rows = cursor.fetchall()
         for row in rows:
             result[row['healthName']] = row['healthID']
@@ -311,10 +311,10 @@ def getHealthStatusDistribution() -> list[dict]:
                 hs.healthID,
                 hs.healthName,
                 COUNT(DISTINCT c.coralID) as coralCount
-            FROM HealthStatus hs
-            LEFT JOIN Classification cl ON hs.healthID = cl.healthID
-            LEFT JOIN CoralImage ci ON cl.imageID = ci.imageID
-            LEFT JOIN Coral c ON ci.coralID = c.coralID
+            FROM healthstatus hs
+            LEFT JOIN classification cl ON hs.healthID = cl.healthID
+            LEFT JOIN coralimage ci ON cl.imageID = ci.imageID
+            LEFT JOIN coral c ON ci.coralID = c.coralID
             GROUP BY hs.healthID, hs.healthName
             ORDER BY coralCount DESC
             """
@@ -342,7 +342,7 @@ def getTotalHealthStatusCount() -> int:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM HealthStatus")
+        cursor.execute("SELECT COUNT(*) FROM healthstatus")
         result = cursor.fetchone()
         return result[0] if result else 0
     except mysql.connector.Error as e:
@@ -377,7 +377,7 @@ def getAverageConfidenceByHealthStatus(healthID: int = None) -> list[dict] | dic
                 """
                 SELECT 
                     AVG(cl.confidenceScore) as avgConfidence
-                FROM Classification cl
+                FROM classification cl
                 WHERE cl.healthID = %s
                 """,
                 (healthID,)
@@ -391,8 +391,8 @@ def getAverageConfidenceByHealthStatus(healthID: int = None) -> list[dict] | dic
                     hs.healthName,
                     AVG(cl.confidenceScore) as avgConfidence,
                     COUNT(cl.classID) as classificationCount
-                FROM HealthStatus hs
-                LEFT JOIN Classification cl ON hs.healthID = cl.healthID
+                FROM healthstatus hs
+                LEFT JOIN classification cl ON hs.healthID = cl.healthID
                 GROUP BY hs.healthID, hs.healthName
                 ORDER BY hs.healthName
                 """
@@ -430,7 +430,7 @@ def createHealthStatus(healthName: str, description: str = None) -> int | None:
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO HealthStatus (healthName, description)
+            INSERT INTO healthstatus (healthName, description)
             VALUES (%s, %s)
             """,
             (healthName, description)
@@ -467,7 +467,7 @@ def updateHealthStatus(healthID: int, healthName: str, description: str = None) 
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE HealthStatus
+            UPDATE healthstatus
             SET healthName = %s,
                 description = %s
             WHERE healthID = %s
@@ -504,7 +504,7 @@ def deleteHealthStatus(healthID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM HealthStatus WHERE healthID = %s",
+            "DELETE FROM healthstatus WHERE healthID = %s",
             (healthID,)
         )
         conn.commit()

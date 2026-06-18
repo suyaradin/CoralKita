@@ -34,7 +34,7 @@ def getRegionByID(regionID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Region WHERE regionID = %s LIMIT 1",
+            "SELECT * FROM region WHERE regionID = %s LIMIT 1",
             (regionID,)
         )
         return cursor.fetchone()
@@ -69,7 +69,7 @@ def getRegionByName(regionName: str) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Region WHERE regionName = %s LIMIT 1",
+            "SELECT * FROM region WHERE regionName = %s LIMIT 1",
             (regionName,)
         )
         return cursor.fetchone()
@@ -107,7 +107,7 @@ def getRegionByCoordinates(latitude: float, longitude: float, tolerance: float =
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM Region
+            SELECT * FROM region
             WHERE ABS(latitude - %s) <= %s
               AND ABS(longitude - %s) <= %s
             LIMIT 1
@@ -149,7 +149,7 @@ def getAllRegions() -> list[dict]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Region ORDER BY regionName")
+        cursor.execute("SELECT * FROM region ORDER BY regionName")
         return cursor.fetchall()
     except mysql.connector.Error as e:
         print(f"Database error in getAllRegions: {e}")
@@ -193,8 +193,8 @@ def getRegionsByCoralCount(minCorals: int = 0, limit: int = 50) -> list[dict]:
                 r.latitude,
                 r.longitude,
                 COUNT(c.coralID) as coralCount
-            FROM Region r
-            LEFT JOIN Coral c ON r.regionID = c.regionID
+            FROM region r
+            LEFT JOIN coral c ON r.regionID = c.regionID
             GROUP BY r.regionID, r.regionName, r.latitude, r.longitude
             HAVING coralCount >= %s
             ORDER BY coralCount DESC
@@ -245,8 +245,8 @@ def getRegionsByStatus(alertLevel: str = None, isActive: bool = True) -> list[di
                 r.isActive,
                 s.sstValue,
                 s.status as alertLevel
-            FROM Region r
-            LEFT JOIN SSTReading s ON r.regionID = s.regionID
+            FROM region r
+            LEFT JOIN sstreading s ON r.regionID = s.regionID
             WHERE r.isActive = %s
         """
         params = [isActive]
@@ -294,7 +294,7 @@ def getNearbyRegions(latitude: float, longitude: float, radiusKm: float = 50) ->
         
         cursor.execute(
             """
-            SELECT * FROM Region
+            SELECT * FROM region
             WHERE ABS(latitude - %s) <= %s
               AND ABS(longitude - %s) <= %s
             ORDER BY regionName
@@ -332,7 +332,7 @@ def regionExists(regionID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM Region WHERE regionID = %s",
+            "SELECT COUNT(*) FROM region WHERE regionID = %s",
             (regionID,)
         )
         result = cursor.fetchone()
@@ -380,7 +380,7 @@ def getRegionIDMap() -> dict[str, int]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT regionID, regionName FROM Region")
+        cursor.execute("SELECT regionID, regionName FROM region")
         rows = cursor.fetchall()
         for row in rows:
             result[row['regionName']] = row['regionID']
@@ -414,7 +414,7 @@ def getRegionCoordinatesDict() -> dict[int, tuple[float, float]]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT regionID, latitude, longitude FROM Region")
+        cursor.execute("SELECT regionID, latitude, longitude FROM region")
         rows = cursor.fetchall()
         for row in rows:
             result[row['regionID']] = (row['latitude'], row['longitude'])
@@ -463,12 +463,12 @@ def getRegionStatistics() -> list[dict]:
                 SUM(CASE WHEN rev.reviewStatus = 'approved' THEN 1 ELSE 0 END) as approvedCount,
                 SUM(CASE WHEN rev.reviewStatus = 'pending' THEN 1 ELSE 0 END) as pendingCount,
                 SUM(CASE WHEN h.healthName = 'Bleaching' THEN 1 ELSE 0 END) as bleachingCount
-            FROM Region r
-            LEFT JOIN Coral c ON r.regionID = c.regionID
-            LEFT JOIN CoralImage ci ON c.coralID = ci.coralID
-            LEFT JOIN Classification cl ON ci.imageID = cl.imageID
-            LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
-            LEFT JOIN Review rev ON cl.classID = rev.classID
+            FROM region r
+            LEFT JOIN coral c ON r.regionID = c.regionID
+            LEFT JOIN coralimage ci ON c.coralID = ci.coralID
+            LEFT JOIN classification cl ON ci.imageID = cl.imageID
+            LEFT JOIN healthstatus h ON cl.healthID = h.healthID
+            LEFT JOIN review rev ON cl.classID = rev.classID
             GROUP BY r.regionID, r.regionName
             ORDER BY r.regionName
             """
@@ -496,7 +496,7 @@ def getTotalRegionCount() -> int:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM Region")
+        cursor.execute("SELECT COUNT(*) FROM region")
         result = cursor.fetchone()
         return result[0] if result else 0
     except mysql.connector.Error as e:
@@ -532,8 +532,8 @@ def getRegionWithMostCorals() -> dict | None:
                 r.regionID,
                 r.regionName,
                 COUNT(c.coralID) as coralCount
-            FROM Region r
-            JOIN Coral c ON r.regionID = c.regionID
+            FROM region r
+            JOIN coral c ON r.regionID = c.regionID
             GROUP BY r.regionID, r.regionName
             ORDER BY coralCount DESC
             LIMIT 1
@@ -581,7 +581,7 @@ def createRegion(
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO Region (regionName, latitude, longitude, description, isActive)
+            INSERT INTO region (regionName, latitude, longitude, description, isActive)
             VALUES (%s, %s, %s, %s, %s)
             """,
             (regionName, latitude, longitude, description, isActive)
@@ -651,7 +651,7 @@ def updateRegion(
             return False
         
         params.append(regionID)
-        query = f"UPDATE Region SET {', '.join(updates)} WHERE regionID = %s"
+        query = f"UPDATE region SET {', '.join(updates)} WHERE regionID = %s"
         
         cursor.execute(query, params)
         conn.commit()
@@ -684,7 +684,7 @@ def deleteRegion(regionID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Region WHERE regionID = %s",
+            "DELETE FROM region WHERE regionID = %s",
             (regionID,)
         )
         conn.commit()

@@ -34,7 +34,7 @@ def getGrowthFormByID(growthFormID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM GrowthForm WHERE growthFormID = %s LIMIT 1",
+            "SELECT * FROM growthform WHERE growthFormID = %s LIMIT 1",
             (growthFormID,)
         )
         return cursor.fetchone()
@@ -64,7 +64,7 @@ def getGrowthFormByName(growthFormName: str) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM GrowthForm WHERE growthFormName = %s LIMIT 1",
+            "SELECT * FROM growthform WHERE growthFormName = %s LIMIT 1",
             (growthFormName,)
         )
         return cursor.fetchone()
@@ -103,7 +103,7 @@ def getAllGrowthForms() -> list[dict]:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM GrowthForm ORDER BY growthFormName"
+            "SELECT * FROM growthform ORDER BY growthFormName"
         )
         return cursor.fetchall()
     except mysql.connector.Error as e:
@@ -137,8 +137,8 @@ def getGrowthFormsByCoralCount(limit: int = 10) -> list[dict]:
                 gf.growthFormID,
                 gf.growthFormName,
                 COUNT(c.coralID) as coralCount
-            FROM GrowthForm gf
-            LEFT JOIN Coral c ON gf.growthFormID = c.growthFormID
+            FROM growthform gf
+            LEFT JOIN coral c ON gf.growthFormID = c.growthFormID
             GROUP BY gf.growthFormID, gf.growthFormName
             ORDER BY coralCount DESC, gf.growthFormName
             LIMIT %s
@@ -176,7 +176,7 @@ def growthFormExists(growthFormID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM GrowthForm WHERE growthFormID = %s",
+            "SELECT COUNT(*) FROM growthform WHERE growthFormID = %s",
             (growthFormID,)
         )
         result = cursor.fetchone()
@@ -210,7 +210,7 @@ def getGrowthFormIDMap() -> dict[str, int]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT growthFormID, growthFormName FROM GrowthForm")
+        cursor.execute("SELECT growthFormID, growthFormName FROM growthform")
         rows = cursor.fetchall()
         for row in rows:
             result[row['growthFormName']] = row['growthFormID']
@@ -254,7 +254,7 @@ def getGrowthFormsByIDs(growthFormIDs: list[int]) -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         placeholders = ','.join(['%s'] * len(growthFormIDs))
         query = f"""
-            SELECT * FROM GrowthForm
+            SELECT * FROM growthform
             WHERE growthFormID IN ({placeholders})
             ORDER BY growthFormName
         """
@@ -286,7 +286,7 @@ def getTotalGrowthFormCount() -> int:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM GrowthForm")
+        cursor.execute("SELECT COUNT(*) FROM growthform")
         result = cursor.fetchone()
         return result[0] if result else 0
     except mysql.connector.Error as e:
@@ -317,8 +317,8 @@ def getMostCommonGrowthForm() -> dict | None:
                 gf.growthFormID,
                 gf.growthFormName,
                 COUNT(c.coralID) as coralCount
-            FROM GrowthForm gf
-            JOIN Coral c ON gf.growthFormID = c.growthFormID
+            FROM growthform gf
+            JOIN coral c ON gf.growthFormID = c.growthFormID
             GROUP BY gf.growthFormID, gf.growthFormName
             ORDER BY coralCount DESC
             LIMIT 1
@@ -357,7 +357,7 @@ def createGrowthForm(growthFormName: str, description: str = None) -> int | None
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO GrowthForm (growthFormName, description)
+            INSERT INTO growthform (growthFormName, description)
             VALUES (%s, %s)
             """,
             (growthFormName, description)
@@ -394,7 +394,7 @@ def updateGrowthForm(growthFormID: int, growthFormName: str, description: str = 
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE GrowthForm
+            UPDATE growthform
             SET growthFormName = %s,
                 description = %s
             WHERE growthFormID = %s
@@ -431,7 +431,7 @@ def deleteGrowthForm(growthFormID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM GrowthForm WHERE growthFormID = %s",
+            "DELETE FROM growthform WHERE growthFormID = %s",
             (growthFormID,)
         )
         conn.commit()

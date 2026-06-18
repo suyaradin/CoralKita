@@ -34,7 +34,7 @@ def getRoleByID(roleID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Role WHERE roleID = %s LIMIT 1",
+            "SELECT * FROM role WHERE roleID = %s LIMIT 1",
             (roleID,)
         )
         return cursor.fetchone()
@@ -69,7 +69,7 @@ def getRoleByName(roleName: str) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Role WHERE LOWER(roleName) = LOWER(%s) LIMIT 1",
+            "SELECT * FROM role WHERE LOWER(roleName) = LOWER(%s) LIMIT 1",
             (roleName,)
         )
         return cursor.fetchone()
@@ -104,7 +104,7 @@ def getRoleNameByID(roleID: int) -> str | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT roleName FROM Role WHERE roleID = %s LIMIT 1",
+            "SELECT roleName FROM role WHERE roleID = %s LIMIT 1",
             (roleID,)
         )
         result = cursor.fetchone()
@@ -162,7 +162,7 @@ def getAllRoles() -> list[dict]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Role ORDER BY roleID")
+        cursor.execute("SELECT * FROM role ORDER BY roleID")
         return cursor.fetchall()
     except mysql.connector.Error as e:
         print(f"Database error in getAllRoles: {e}")
@@ -192,7 +192,7 @@ def getActiveRoles() -> list[dict]:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM Role WHERE isActive = 1 ORDER BY roleID"
+            "SELECT * FROM role WHERE isActive = 1 ORDER BY roleID"
         )
         return cursor.fetchall()
     except mysql.connector.Error as e:
@@ -231,8 +231,8 @@ def getRolesByUserCount() -> list[dict]:
                 r.roleID,
                 r.roleName,
                 COUNT(u.userID) as userCount
-            FROM Role r
-            LEFT JOIN Users u ON r.roleID = u.roleID
+            FROM role r
+            LEFT JOIN users u ON r.roleID = u.roleID
             GROUP BY r.roleID, r.roleName
             ORDER BY userCount DESC
             """
@@ -268,7 +268,7 @@ def roleExists(roleID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM Role WHERE roleID = %s",
+            "SELECT COUNT(*) FROM role WHERE roleID = %s",
             (roleID,)
         )
         result = cursor.fetchone()
@@ -316,7 +316,7 @@ def getRoleIDMap() -> dict[str, int]:
     
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT roleID, roleName FROM Role")
+        cursor.execute("SELECT roleID, roleName FROM role")
         rows = cursor.fetchall()
         for row in rows:
             result[row['roleName']] = row['roleID']
@@ -475,9 +475,9 @@ def getRoleDistribution() -> list[dict]:
                 r.roleID,
                 r.roleName,
                 COUNT(u.userID) as userCount,
-                ROUND(COUNT(u.userID) * 100.0 / (SELECT COUNT(*) FROM Users), 2) as percentage
-            FROM Role r
-            LEFT JOIN Users u ON r.roleID = u.roleID
+                ROUND(COUNT(u.userID) * 100.0 / (SELECT COUNT(*) FROM users), 2) as percentage
+            FROM role r
+            LEFT JOIN users u ON r.roleID = u.roleID
             GROUP BY r.roleID, r.roleName
             ORDER BY userCount DESC
             """
@@ -505,7 +505,7 @@ def getTotalRoleCount() -> int:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM Role")
+        cursor.execute("SELECT COUNT(*) FROM role")
         result = cursor.fetchone()
         return result[0] if result else 0
     except mysql.connector.Error as e:
@@ -541,7 +541,7 @@ def createRole(roleName: str, description: str = None, isActive: bool = True) ->
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO Role (roleName, description, isActive)
+            INSERT INTO role (roleName, description, isActive)
             VALUES (%s, %s, %s)
             """,
             (roleName, description, isActive)
@@ -596,7 +596,7 @@ def updateRole(roleID: int, roleName: str = None, description: str = None, isAct
             return False
         
         params.append(roleID)
-        query = f"UPDATE Role SET {', '.join(updates)} WHERE roleID = %s"
+        query = f"UPDATE role SET {', '.join(updates)} WHERE roleID = %s"
         
         cursor.execute(query, params)
         conn.commit()
@@ -629,7 +629,7 @@ def deleteRole(roleID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM Role WHERE roleID = %s",
+            "DELETE FROM role WHERE roleID = %s",
             (roleID,)
         )
         conn.commit()

@@ -32,7 +32,7 @@ def createCoralImage(imagePath: str, uploadBy: int, coralID: int) -> int | None:
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO CoralImage (imagePath, uploadBy, coralID)
+            INSERT INTO coralimage (imagePath, uploadBy, coralID)
             VALUES (%s, %s, %s)
             """,
             (imagePath, uploadBy, coralID)
@@ -85,7 +85,7 @@ def getImageByID(imageID: int) -> dict | None:
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM CoralImage WHERE imageID = %s LIMIT 1",
+            "SELECT * FROM coralimage WHERE imageID = %s LIMIT 1",
             (imageID,)
         )
         return cursor.fetchone()
@@ -116,7 +116,7 @@ def getLatestImageByCoralID(coralID: int) -> dict | None:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM CoralImage
+            SELECT * FROM coralimage
             WHERE coralID = %s
             ORDER BY uploadDate DESC
             LIMIT 1
@@ -155,7 +155,7 @@ def getImagesByCoralID(coralID: int) -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM CoralImage
+            SELECT * FROM coralimage
             WHERE coralID = %s
             ORDER BY uploadDate DESC
             """,
@@ -189,7 +189,7 @@ def getImagesByUserID(userID: int) -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM CoralImage
+            SELECT * FROM coralimage
             WHERE uploadBy = %s
             ORDER BY uploadDate DESC
             """,
@@ -224,7 +224,7 @@ def getImagesByDateRange(start_date: str, end_date: str) -> list[dict]:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT * FROM CoralImage
+            SELECT * FROM coralimage
             WHERE DATE(uploadDate) BETWEEN %s AND %s
             ORDER BY uploadDate DESC
             """,
@@ -269,11 +269,11 @@ def getImagesWithDetailsByCoralID(coralID: int) -> list[dict]:
                 h.healthName,
                 r.reviewStatus,
                 r.rejectionReason
-            FROM CoralImage ci
-            LEFT JOIN Users u ON ci.uploadBy = u.userID
-            LEFT JOIN Classification cl ON ci.imageID = cl.imageID
-            LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
-            LEFT JOIN Review r ON cl.classID = r.classID
+            FROM coralimage ci
+            LEFT JOIN users u ON ci.uploadBy = u.userID
+            LEFT JOIN classification cl ON ci.imageID = cl.imageID
+            LEFT JOIN healthstatus h ON cl.healthID = h.healthID
+            LEFT JOIN review r ON cl.classID = r.classID
             WHERE ci.coralID = %s
             ORDER BY ci.uploadDate DESC
             """,
@@ -312,7 +312,7 @@ def updateImagePath(imageID: int, new_imagePath: str) -> bool:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE CoralImage
+            UPDATE coralimage
             SET imagePath = %s
             WHERE imageID = %s
             """,
@@ -349,7 +349,7 @@ def reassignImageToCoral(imageID: int, new_coralID: int) -> bool:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE CoralImage
+            UPDATE coralimage
             SET coralID = %s
             WHERE imageID = %s
             """,
@@ -388,7 +388,7 @@ def deleteImage(imageID: int) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM CoralImage WHERE imageID = %s",
+            "DELETE FROM coralimage WHERE imageID = %s",
             (imageID,)
         )
         conn.commit()
@@ -420,7 +420,7 @@ def deleteImagesByCoralID(coralID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM CoralImage WHERE coralID = %s",
+            "DELETE FROM coralimage WHERE coralID = %s",
             (coralID,)
         )
         conn.commit()
@@ -452,7 +452,7 @@ def deleteImagesByUserID(userID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DELETE FROM CoralImage WHERE uploadBy = %s",
+            "DELETE FROM coralimage WHERE uploadBy = %s",
             (userID,)
         )
         conn.commit()
@@ -488,7 +488,7 @@ def getImageCountByCoralID(coralID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM CoralImage WHERE coralID = %s",
+            "SELECT COUNT(*) FROM coralimage WHERE coralID = %s",
             (coralID,)
         )
         result = cursor.fetchone()
@@ -519,7 +519,7 @@ def getImageCountByUserID(userID: int) -> int:
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) FROM CoralImage WHERE uploadBy = %s",
+            "SELECT COUNT(*) FROM coralimage WHERE uploadBy = %s",
             (userID,)
         )
         result = cursor.fetchone()
@@ -546,7 +546,7 @@ def getTotalImageCount() -> int:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM CoralImage")
+        cursor.execute("SELECT COUNT(*) FROM coralimage")
         result = cursor.fetchone()
         return result[0] if result else 0
     except mysql.connector.Error as e:
@@ -580,7 +580,7 @@ def bulkCreateCoralImages(images: list[tuple]) -> list[int]:
     try:
         cursor = conn.cursor()
         sql = """
-            INSERT INTO CoralImage (imagePath, uploadBy, coralID)
+            INSERT INTO coralimage (imagePath, uploadBy, coralID)
             VALUES (%s, %s, %s)
         """
         cursor.executemany(sql, images)

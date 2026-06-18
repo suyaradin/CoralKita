@@ -49,7 +49,7 @@ def createCoral(
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO Coral (
+            INSERT INTO coral (
                 genus, species, growthFormID,
                 waterTempMin, waterTempMax,
                 pHMin, pHMax, regionID, submittedBy
@@ -92,10 +92,10 @@ def getCoralByID(coralID: int) -> dict | None:
                 r.regionName, 
                 g.growthFormName, 
                 u.username as submittedByName
-            FROM Coral c
-            LEFT JOIN Region r ON c.regionID = r.regionID
-            LEFT JOIN GrowthForm g ON c.growthFormID = g.growthFormID
-            LEFT JOIN Users u ON c.submittedBy = u.userID
+            FROM coral c
+            LEFT JOIN region r ON c.regionID = r.regionID
+            LEFT JOIN growthform g ON c.growthFormID = g.growthFormID
+            LEFT JOIN users u ON c.submittedBy = u.userID
             WHERE c.coralID = %s
         """
         cursor.execute(sql, (coralID,))
@@ -127,9 +127,9 @@ def getAllCorals() -> list[dict]:
                 c.*, 
                 r.regionName, 
                 u.username as submittedByName
-            FROM Coral c
-            LEFT JOIN Region r ON c.regionID = r.regionID
-            LEFT JOIN Users u ON c.submittedBy = u.userID
+            FROM coral c
+            LEFT JOIN region r ON c.regionID = r.regionID
+            LEFT JOIN users u ON c.submittedBy = u.userID
             ORDER BY c.submittedAt DESC
         """
         cursor.execute(sql)
@@ -163,8 +163,8 @@ def getCoralsBySubmittedBy(userID: int) -> list[dict]:
             SELECT 
                 c.*, 
                 r.regionName
-            FROM Coral c
-            LEFT JOIN Region r ON c.regionID = r.regionID
+            FROM coral c
+            LEFT JOIN region r ON c.regionID = r.regionID
             WHERE c.submittedBy = %s
             ORDER BY c.submittedAt DESC
         """
@@ -192,7 +192,7 @@ def updateCoral(
     regionID: int
 ) -> bool:
     """
-    Update coral information.
+    UPDATE coral information.
     
     Args:
         coralID: ID of the coral to update
@@ -214,7 +214,7 @@ def updateCoral(
     try:
         cursor = conn.cursor()
         sql = """
-            UPDATE Coral
+            UPDATE coral
             SET genus = %s,
                 species = %s,
                 growthFormID = %s,
@@ -258,7 +258,7 @@ def deleteCoral(coralID: int) -> bool:
     
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM Coral WHERE coralID = %s", (coralID,))
+        cursor.execute("DELETE FROM coral WHERE coralID = %s", (coralID,))
         conn.commit()
         return cursor.rowcount > 0
     except mysql.connector.Error as e:
@@ -302,13 +302,13 @@ def getCoralsWithReviewStatus() -> list[dict]:
                 rev.rejectionReason,
                 u.username as submittedBy,
                 ci.imagePath
-            FROM Coral c
-            JOIN Region r ON c.regionID = r.regionID
-            JOIN Users u ON c.submittedBy = u.userID
-            LEFT JOIN CoralImage ci ON c.coralID = ci.coralID
-            LEFT JOIN Classification cl ON ci.imageID = cl.imageID
-            LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
-            LEFT JOIN Review rev ON cl.classID = rev.classID
+            FROM coral c
+            JOIN region r ON c.regionID = r.regionID
+            JOIN users u ON c.submittedBy = u.userID
+            LEFT JOIN coralimage ci ON c.coralID = ci.coralID
+            LEFT JOIN classification cl ON ci.imageID = cl.imageID
+            LEFT JOIN healthstatus h ON cl.healthID = h.healthID
+            LEFT JOIN review rev ON cl.classID = rev.classID
             GROUP BY c.coralID
             ORDER BY c.submittedAt DESC
         """
@@ -355,22 +355,22 @@ def getPendingReviewCorals() -> list[dict]:
                 u.userID as submittedByID,
                 (
                     SELECT r2.iucnID
-                    FROM Review r2
-                    JOIN Classification cl2 ON r2.classID = cl2.classID
-                    JOIN CoralImage ci2 ON cl2.imageID = ci2.imageID
+                    FROM review r2
+                    JOIN classification cl2 ON r2.classID = cl2.classID
+                    JOIN coralimage ci2 ON cl2.imageID = ci2.imageID
                     WHERE ci2.coralID = c.coralID
                       AND r2.reviewStatus = 'approved'
                       AND r2.iucnID IS NOT NULL
                     ORDER BY r2.reviewedAt DESC, r2.reviewID DESC
                     LIMIT 1
                 ) as existingIucnID
-            FROM Review r
-            JOIN Classification cl ON r.classID = cl.classID
-            JOIN HealthStatus h ON cl.healthID = h.healthID
-            JOIN CoralImage ci ON cl.imageID = ci.imageID
-            JOIN Coral c ON ci.coralID = c.coralID
-            JOIN Region reg ON c.regionID = reg.regionID
-            JOIN Users u ON ci.uploadBy = u.userID
+            FROM review r
+            JOIN classification cl ON r.classID = cl.classID
+            JOIN healthstatus h ON cl.healthID = h.healthID
+            JOIN coralimage ci ON cl.imageID = ci.imageID
+            JOIN coral c ON ci.coralID = c.coralID
+            JOIN region reg ON c.regionID = reg.regionID
+            JOIN users u ON ci.uploadBy = u.userID
             WHERE r.reviewStatus = 'pending'
             ORDER BY ci.uploadDate ASC
         """
@@ -419,12 +419,12 @@ def getMarineBiologistCoralsWithStatus(userID: int) -> list[dict]:
                 ANY_VALUE(rev.reviewStatus) AS reviewStatus,
                 ANY_VALUE(rev.rejectionReason) AS rejectionReason,
                 ANY_VALUE(ci.imagePath) AS imagePath
-            FROM Coral c
-            JOIN Region r ON c.regionID = r.regionID
-            LEFT JOIN CoralImage ci ON c.coralID = ci.coralID
-            LEFT JOIN Classification cl ON ci.imageID = cl.imageID
-            LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
-            LEFT JOIN Review rev ON cl.classID = rev.classID
+            FROM coral c
+            JOIN region r ON c.regionID = r.regionID
+            LEFT JOIN coralimage ci ON c.coralID = ci.coralID
+            LEFT JOIN classification cl ON ci.imageID = cl.imageID
+            LEFT JOIN healthstatus h ON cl.healthID = h.healthID
+            LEFT JOIN review rev ON cl.classID = rev.classID
             WHERE c.submittedBy = %s
             GROUP BY c.coralID, c.submittedBy, c.genus, c.species, c.submittedAt
             ORDER BY c.submittedAt DESC
@@ -471,12 +471,12 @@ def getMarineBiologistHealthLogs(userID: int) -> list[dict]:
                 rev.rejectionReason,
                 ci.imagePath,
                 ci.uploadDate
-            FROM Coral c
-            JOIN Region r ON c.regionID = r.regionID
-            LEFT JOIN CoralImage ci ON c.coralID = ci.coralID
-            LEFT JOIN Classification cl ON ci.imageID = cl.imageID
-            LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
-            LEFT JOIN Review rev ON cl.classID = rev.classID
+            FROM coral c
+            JOIN region r ON c.regionID = r.regionID
+            LEFT JOIN coralimage ci ON c.coralID = ci.coralID
+            LEFT JOIN classification cl ON ci.imageID = cl.imageID
+            LEFT JOIN healthstatus h ON cl.healthID = h.healthID
+            LEFT JOIN review rev ON cl.classID = rev.classID
             WHERE c.submittedBy = %s
               AND rev.reviewStatus = 'approved'
             ORDER BY ci.uploadDate DESC, c.submittedAt DESC
@@ -492,7 +492,6 @@ def getMarineBiologistHealthLogs(userID: int) -> list[dict]:
         if conn:
             conn.close()
 
-            
 # ============================================================================
 # 4. DASHBOARD QUERIES - EDUCATOR
 # ============================================================================
@@ -526,15 +525,15 @@ def getApprovedCoralsForEducator() -> list[dict]:
                 cl.confidenceScore,
                 i.iucnName,
                 u.username as uploadedByName
-            FROM Coral c
-            JOIN Region reg ON c.regionID = reg.regionID
-            LEFT JOIN GrowthForm gf ON c.growthFormID = gf.growthFormID
-            JOIN CoralImage ci ON c.coralID = ci.coralID
-            LEFT JOIN Users u ON ci.uploadBy = u.userID
-            JOIN Classification cl ON ci.imageID = cl.imageID
-            JOIN HealthStatus h ON cl.healthID = h.healthID
-            JOIN Review rev ON cl.classID = rev.classID
-            LEFT JOIN IUCNStatus i ON rev.iucnID = i.iucnID
+            FROM coral c
+            JOIN region reg ON c.regionID = reg.regionID
+            LEFT JOIN growthform gf ON c.growthFormID = gf.growthFormID
+            JOIN coralimage ci ON c.coralID = ci.coralID
+            LEFT JOIN users u ON ci.uploadBy = u.userID
+            JOIN classification cl ON ci.imageID = cl.imageID
+            JOIN healthstatus h ON cl.healthID = h.healthID
+            JOIN review rev ON cl.classID = rev.classID
+            LEFT JOIN iucnstatus i ON rev.iucnID = i.iucnID
             WHERE rev.reviewStatus = 'approved'
             GROUP BY c.coralID
             ORDER BY c.submittedAt DESC
@@ -577,42 +576,42 @@ def getDashboardCounts() -> dict | None:
         cursor = conn.cursor(dictionary=True)
         sql = """
             SELECT 
-                (SELECT COUNT(DISTINCT c.coralID) FROM Coral c) as total,
-                (SELECT COUNT(DISTINCT r.reviewID) FROM Review r 
+                (SELECT COUNT(DISTINCT c.coralID) FROM coral c) as total,
+                (SELECT COUNT(DISTINCT r.reviewID) FROM review r 
                  WHERE r.reviewStatus = 'pending') as pending_review,
-                (SELECT COUNT(DISTINCT c.coralID) FROM Coral c 
-                 JOIN CoralImage ci ON c.coralID = ci.coralID 
-                 JOIN Classification cl ON ci.imageID = cl.imageID 
-                 JOIN HealthStatus h ON cl.healthID = h.healthID 
-                 JOIN Review r ON cl.classID = r.classID 
+                (SELECT COUNT(DISTINCT c.coralID) FROM coral c 
+                 JOIN coralimage ci ON c.coralID = ci.coralID 
+                 JOIN classification cl ON ci.imageID = cl.imageID 
+                 JOIN healthstatus h ON cl.healthID = h.healthID 
+                 JOIN review r ON cl.classID = r.classID 
                  WHERE h.healthName = 'Bleaching' AND r.reviewStatus = 'approved') as bleaching_risk,
-                (SELECT COUNT(DISTINCT c.coralID) FROM Coral c 
-                 JOIN CoralImage ci ON c.coralID = ci.coralID 
-                 JOIN Classification cl ON ci.imageID = cl.imageID 
-                 JOIN Review r ON cl.classID = r.classID 
+                (SELECT COUNT(DISTINCT c.coralID) FROM coral c 
+                 JOIN coralimage ci ON c.coralID = ci.coralID 
+                 JOIN classification cl ON ci.imageID = cl.imageID 
+                 JOIN review r ON cl.classID = r.classID 
                  WHERE r.reviewStatus = 'pending') as pending_submissions,
-                (SELECT COUNT(DISTINCT c.coralID) FROM Coral c 
-                 JOIN CoralImage ci ON c.coralID = ci.coralID 
-                 JOIN Classification cl ON ci.imageID = cl.imageID 
-                 JOIN Review r ON cl.classID = r.classID 
+                (SELECT COUNT(DISTINCT c.coralID) FROM coral c 
+                 JOIN coralimage ci ON c.coralID = ci.coralID 
+                 JOIN classification cl ON ci.imageID = cl.imageID 
+                 JOIN review r ON cl.classID = r.classID 
                  WHERE r.reviewStatus = 'approved') as approved_submissions,
-                (SELECT COUNT(DISTINCT c.coralID) FROM Coral c 
-                 JOIN CoralImage ci ON c.coralID = ci.coralID 
-                 JOIN Classification cl ON ci.imageID = cl.imageID 
-                 JOIN Review r ON cl.classID = r.classID 
+                (SELECT COUNT(DISTINCT c.coralID) FROM coral c 
+                 JOIN coralimage ci ON c.coralID = ci.coralID 
+                 JOIN classification cl ON ci.imageID = cl.imageID 
+                 JOIN review r ON cl.classID = r.classID 
                  WHERE r.reviewStatus = 'rejected') as rejected_submissions,
-                (SELECT COUNT(DISTINCT c.coralID) FROM Coral c
-                 JOIN CoralImage ci ON c.coralID = ci.coralID
-                 JOIN Classification cl ON ci.imageID = cl.imageID
-                 JOIN Review r ON cl.classID = r.classID
-                 JOIN IUCNStatus i ON r.iucnID = i.iucnID
+                (SELECT COUNT(DISTINCT c.coralID) FROM coral c
+                 JOIN coralimage ci ON c.coralID = ci.coralID
+                 JOIN classification cl ON ci.imageID = cl.imageID
+                 JOIN review r ON cl.classID = r.classID
+                 JOIN iucnstatus i ON r.iucnID = i.iucnID
                  WHERE r.reviewStatus = 'approved'
                    AND LOWER(i.iucnName) IN ('critically endangered', 'cr')) as critically_endangered,
-                (SELECT COUNT(DISTINCT c.coralID) FROM Coral c 
-                 JOIN CoralImage ci ON c.coralID = ci.coralID 
-                 JOIN Classification cl ON ci.imageID = cl.imageID 
-                 JOIN HealthStatus h ON cl.healthID = h.healthID 
-                 JOIN Review r ON cl.classID = r.classID 
+                (SELECT COUNT(DISTINCT c.coralID) FROM coral c 
+                 JOIN coralimage ci ON c.coralID = ci.coralID 
+                 JOIN classification cl ON ci.imageID = cl.imageID 
+                 JOIN healthstatus h ON cl.healthID = h.healthID 
+                 JOIN review r ON cl.classID = r.classID 
                  WHERE h.healthName = 'Bleaching' AND r.reviewStatus = 'approved') as bleaching_risk_count
         """
         cursor.execute(sql)
@@ -641,7 +640,7 @@ def getCoralCountByRegion() -> dict:
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT regionID, COUNT(*) as coralCount
-            FROM Coral
+            FROM coral
             GROUP BY regionID
         """)
         rows = cursor.fetchall()
@@ -680,9 +679,9 @@ def searchCoralsByGenus(genus: str) -> list[dict]:
                 c.*, 
                 r.regionName,
                 u.username as submittedByName
-            FROM Coral c
-            LEFT JOIN Region r ON c.regionID = r.regionID
-            LEFT JOIN Users u ON c.submittedBy = u.userID
+            FROM coral c
+            LEFT JOIN region r ON c.regionID = r.regionID
+            LEFT JOIN users u ON c.submittedBy = u.userID
             WHERE c.genus LIKE %s
             ORDER BY c.submittedAt DESC
         """
@@ -719,9 +718,9 @@ def getCoralsByRegion(regionID: int) -> list[dict]:
                 c.*, 
                 r.regionName,
                 u.username as submittedByName
-            FROM Coral c
-            LEFT JOIN Region r ON c.regionID = r.regionID
-            LEFT JOIN Users u ON c.submittedBy = u.userID
+            FROM coral c
+            LEFT JOIN region r ON c.regionID = r.regionID
+            LEFT JOIN users u ON c.submittedBy = u.userID
             WHERE c.regionID = %s
             ORDER BY c.submittedAt DESC
         """
