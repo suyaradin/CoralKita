@@ -1,15 +1,5 @@
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
-
-[phases.install]
-cmds = [
-    "python -m venv /opt/venv",
-    "/opt/venv/bin/python -m pip install --upgrade pip setuptools wheel",
-    "/opt/venv/bin/python -m pip install --no-cache-dir -r requirements.txt"
-]
+nixPkgs = ["python311", "python311Packages.pip"]
 
 [start]
-cmd = "/opt/venv/bin/gunicorn --timeout 300 --workers 1 app:app"
-
-[build]
-maxBuildTimeSeconds = 1800
+cmd = "gunicorn app:app"
