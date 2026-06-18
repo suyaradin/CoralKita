@@ -322,7 +322,7 @@
                                         <div class="action-buttons">
                                             <button type="button" class="square-submit-btn btn-view" data-coral-id="{{ coral.coralID }}">View Details</button>
                                             {% if coral.reviewStatus == 'approved' %}
-                                            <button class="square-submit-btn" data-coral-id="{{ coral.coralID }}">Add Health Log</button>
+                                            <a href="{{ url_for('dashboard.dashboard_section', section='upload_coral') }}?prefillCoralID={{ coral.coralID }}" class="square-submit-btn">Add Health Log</a>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -337,7 +337,7 @@
                                 You haven't submitted any corals yet.<br>
                                 Click "Upload Coral" to add your first submission!
                             </div>
-                            <button class="form-btn upload-coral-btn">Upload Coral</button>
+                            <a href="{{ url_for('dashboard.dashboard_section', section='upload_coral') }}" class="form-btn">Upload Coral</a>
                         </div>
                         {% endif %}
                     </div>
@@ -424,7 +424,7 @@
                             You don't have any coral submissions yet.<br>
                             Upload a coral to start tracking its health!
                         </div>
-                        <button class="form-btn upload-coral-btn">+ Upload Coral</button>
+                        <a href="{{ url_for('dashboard.dashboard_section', section='upload_coral') }}" class="form-btn">Upload Coral</a>
                     </div>
                     {% endif %}
                     </div>
