@@ -430,7 +430,7 @@ def getReviewStatistics() -> dict:
 # 5. UPDATE OPERATIONS (Review Workflow)
 # ============================================================================
 
-def UPDATE review(
+def UPDATEReview(
     reviewID: int,
     reviewStatus: str,
     reviewedBy: int,
