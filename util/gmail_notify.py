@@ -19,6 +19,14 @@ from googleapiclient.errors import HttpError
 
 TOKEN_PATH = "/etc/secrets/token.json" if os.path.exists("/etc/secrets/token.json") else "token.json"
 WRITABLE_TOKEN_PATH = "/tmp/token.json"
+TOKEN_PATH = "/etc/secrets/token.json" if os.path.exists("/etc/secrets/token.json") else "token.json"
+WRITABLE_TOKEN_PATH = "/tmp/token.json"
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+
+# Reuse one service + sender per process; lock for thread-safe parallel SST workers
+_service = None
+_sender_email: str | None = None
+_service_lock = threading.Lock()
 
 def get_gmail_service():
     """Initialize and return a cached Gmail API service."""
