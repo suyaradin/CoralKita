@@ -295,13 +295,13 @@ def getCoralsWithReviewStatus() -> list[dict]:
                 c.genus,
                 c.species,
                 c.submittedAt,
-                r.regionName,
-                h.healthName,
-                cl.confidenceScore,
-                rev.reviewStatus,
-                rev.rejectionReason,
-                u.username as submittedBy,
-                ci.imagePath
+                ANY_VALUE(r.regionName) AS regionName,
+                ANY_VALUE(h.healthName) AS healthName,
+                ANY_VALUE(cl.confidenceScore) AS confidenceScore,
+                ANY_VALUE(rev.reviewStatus) AS reviewStatus,
+                ANY_VALUE(rev.rejectionReason) AS rejectionReason,
+                ANY_VALUE(u.username) AS submittedBy,
+                ANY_VALUE(ci.imagePath) AS imagePath
             FROM coral c
             JOIN region r ON c.regionID = r.regionID
             JOIN users u ON c.submittedBy = u.userID
@@ -309,7 +309,7 @@ def getCoralsWithReviewStatus() -> list[dict]:
             LEFT JOIN classification cl ON ci.imageID = cl.imageID
             LEFT JOIN healthstatus h ON cl.healthID = h.healthID
             LEFT JOIN review rev ON cl.classID = rev.classID
-            GROUP BY c.coralID
+            GROUP BY c.coralID, c.genus, c.species, c.submittedAt
             ORDER BY c.submittedAt DESC
         """
         cursor.execute(sql)
@@ -322,7 +322,6 @@ def getCoralsWithReviewStatus() -> list[dict]:
             cursor.close()
         if conn:
             conn.close()
-
 
 def getPendingReviewCorals() -> list[dict]:
     """
@@ -497,13 +496,6 @@ def getMarineBiologistHealthLogs(userID: int) -> list[dict]:
 # ============================================================================
 
 def getApprovedCoralsForEducator() -> list[dict]:
-    """
-    Get approved corals for educator-facing public gallery/table.
-    Includes latest review-linked classification fields needed by template.
-    
-    Returns:
-        List of dictionaries containing approved coral data for display
-    """
     conn = getConnection()
     cursor = None
     
@@ -518,13 +510,13 @@ def getApprovedCoralsForEducator() -> list[dict]:
                 c.waterTempMax,
                 c.pHMin,
                 c.pHMax,
-                reg.regionName,
-                gf.growthFormName,
-                ci.imagePath,
-                h.healthName,
-                cl.confidenceScore,
-                i.iucnName,
-                u.username as uploadedByName
+                ANY_VALUE(reg.regionName) AS regionName,
+                ANY_VALUE(gf.growthFormName) AS growthFormName,
+                ANY_VALUE(ci.imagePath) AS imagePath,
+                ANY_VALUE(h.healthName) AS healthName,
+                ANY_VALUE(cl.confidenceScore) AS confidenceScore,
+                ANY_VALUE(i.iucnName) AS iucnName,
+                ANY_VALUE(u.username) AS uploadedByName
             FROM coral c
             JOIN region reg ON c.regionID = reg.regionID
             LEFT JOIN growthform gf ON c.growthFormID = gf.growthFormID
@@ -535,7 +527,7 @@ def getApprovedCoralsForEducator() -> list[dict]:
             JOIN review rev ON cl.classID = rev.classID
             LEFT JOIN iucnstatus i ON rev.iucnID = i.iucnID
             WHERE rev.reviewStatus = 'approved'
-            GROUP BY c.coralID
+            GROUP BY c.coralID, c.genus, c.species, c.waterTempMin, c.waterTempMax, c.pHMin, c.pHMax
             ORDER BY c.submittedAt DESC
         """
         cursor.execute(sql)
