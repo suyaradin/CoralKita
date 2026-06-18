@@ -413,12 +413,12 @@ def getMarineBiologistCoralsWithStatus(userID: int) -> list[dict]:
                 c.genus,
                 c.species,
                 c.submittedAt,
-                r.regionName,
-                h.healthName,
-                cl.confidenceScore,
-                rev.reviewStatus,
-                rev.rejectionReason,
-                ci.imagePath
+                ANY_VALUE(r.regionName) AS regionName,
+                ANY_VALUE(h.healthName) AS healthName,
+                ANY_VALUE(cl.confidenceScore) AS confidenceScore,
+                ANY_VALUE(rev.reviewStatus) AS reviewStatus,
+                ANY_VALUE(rev.rejectionReason) AS rejectionReason,
+                ANY_VALUE(ci.imagePath) AS imagePath
             FROM Coral c
             JOIN Region r ON c.regionID = r.regionID
             LEFT JOIN CoralImage ci ON c.coralID = ci.coralID
@@ -426,7 +426,7 @@ def getMarineBiologistCoralsWithStatus(userID: int) -> list[dict]:
             LEFT JOIN HealthStatus h ON cl.healthID = h.healthID
             LEFT JOIN Review rev ON cl.classID = rev.classID
             WHERE c.submittedBy = %s
-            GROUP BY c.coralID
+            GROUP BY c.coralID, c.submittedBy, c.genus, c.species, c.submittedAt
             ORDER BY c.submittedAt DESC
         """
         cursor.execute(sql, (userID,))
@@ -492,7 +492,7 @@ def getMarineBiologistHealthLogs(userID: int) -> list[dict]:
         if conn:
             conn.close()
 
-
+            
 # ============================================================================
 # 4. DASHBOARD QUERIES - EDUCATOR
 # ============================================================================

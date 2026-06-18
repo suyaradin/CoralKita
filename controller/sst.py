@@ -1,38 +1,38 @@
 """
+
 SST (Sea Surface Temperature) Monitoring Module
+
 =================================================
-Handles NOAA CoralTemp data fetching, DHW computation, alert generation,
-and Gmail notifications for coral bleaching monitoring.
-"""
+
 from flask import Blueprint, jsonify, session, request, render_template
 
 import os
-import threading
-from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor, as_completed
+and Gmail notifications for coral bleaching monitoring.
 
-import requests
-from flask import Blueprint, jsonify, session, request
+"""
+
+from __future__ import annotations
+
 
 # DAO Imports
-from dao.SSTReadingDAO import (
+
     createSSTReading,
-    getRecentReadings,
+
     getTodayReadingByRegion
+
+
+import requests
+
+from flask import Blueprint, jsonify, session, request
+
+
+    DHW_HISTORY_DAYS,
+
 )
+
 from dao.SSTAlertDAO import createAlert, wasAlertSentToday
+
 from dao.RegionDAO import getAllRegions
-from dao.UserDAO import getNotificationRecipients
-from dao.CoralDAO import getCoralCountByRegion
-from util.gmail_notify import send_email_to_recipients
-
-
-# ============================================================================
-# 1. BLUEPRINT & CONSTANTS
-# ============================================================================
-
-sst_bp = Blueprint("sst", __name__)
-
 # NOAA Coral Reef Watch DHW thresholds
 DHW_ALERT_LEVEL1 = 4   # Alert Level 1 threshold (DHW >= 4)
 DHW_ALERT_LEVEL2 = 8   # Alert Level 2 threshold (DHW >= 8)
@@ -45,25 +45,25 @@ NOAA_ENDPOINTS = [
 ]
 
 # In-memory cache for SST data
-_sst_cache = {
-    "data": None,
+from dao.UserDAO import getNotificationRecipients
+
     "date": None
-}
 
-# TEST MODE
-# Set to True for local testing to:
-# 1) bypass daily alert suppression, and
-# 2) force fresh processing each /api/sst call.
-# IMPORTANT: set True only for local alert/email testing.
-SST_TEST_MODE = False
+from util.gmail_notify import send_email_to_recipients
 
+from util.noaa_erddap import (
 
-# ============================================================================
+    NOAAERDDAPError,
+
+    fetch_latest_sst,
+
+    fetch_mmm_from_noaa,
+
 # 2. NOAA DATA FETCHING
-# ============================================================================
 
+    observations_to_readings,
 def fetchNOAASST(latitude: float, longitude: float) -> float | None:
-    """
+)
     Fetch SST value from NOAA CoralTemp API for given coordinates.
     
     Args:
@@ -72,7 +72,7 @@ def fetchNOAASST(latitude: float, longitude: float) -> float | None:
     
     Returns:
         SST value in Celsius, or None if fetch fails
-    """
+
     headers = {"User-Agent": "CoralKita/1.0 (SST Monitor)"}
     
     for endpoint in NOAA_ENDPOINTS:
@@ -106,7 +106,7 @@ def fetchNOAASST(latitude: float, longitude: float) -> float | None:
 # ============================================================================
 
 def computeDHW(regionID: int) -> tuple[float, int]:
-    """
+
     Compute Degree Heating Weeks for a region.
     
     DHW accumulates thermal stress (hotspots >= 1°C) over a 12-week period.
@@ -114,12 +114,12 @@ def computeDHW(regionID: int) -> tuple[float, int]:
     Args:
         regionID: Database ID of the region
     
-    Returns:
+    "data": None,
         Tuple of (DHW_value, days_accumulated)
-    """
+    "date": None,
     readings = getRecentReadings(regionID, weeks=12)
     
-    if not readings:
+}
         return 0.0, 0
     
     hotspot_sum = 0.0
@@ -189,29 +189,29 @@ def getAlertLevel(dhw: float, hotspot: float) -> str | None:
     return None
 
 
-# ============================================================================
+
 # 4. CORE SST PROCESSING LOGIC
 # ============================================================================
 
-def processRegionSST(
-    region: dict,
-    coralCounts: dict,
+# 2. HISTORY BACKFILL & METRIC COMPUTATION
+
+# ============================================================================
     bypass_daily_alert_lock: bool = False
-) -> dict | None:
-    """
-    Process SST data for a single region.
+
+def ensureSSTHistory(regionID: int, latitude: float, longitude: float, session: requests.Session) -> None:
+
     
-    Args:
-        region: Region dictionary with coordinates and metadata
-        coralCounts: Dictionary mapping regionID to coral count
+
+    Cold-start backfill: ensure 84 distinct daily SST readings exist for DHW.
+
     
-    Returns:
-        Processed region data dict, or None if processing fails
+
+    insert only missing calendar days into SSTReading.
+
     """
-    regionID = region["regionID"]
-    regionName = region["regionName"]
-    latitude = float(region["latitude"])
-    longitude = float(region["longitude"])
+
+    stored_days = countDistinctDailyReadings(regionID, days=DHW_HISTORY_DAYS)
+
     
     # Fetch SST from NOAA (with fallback to database)
     sstValue = fetchNOAASST(latitude, longitude)
@@ -296,115 +296,472 @@ def processRegionSST(
     return result
 
 
-def _dispatch_alert_emails(pending_alerts: list[dict]) -> None:
-    """Send alert emails on a background thread so /api/sst can respond quickly."""
-    for item in pending_alerts:
+
+
+# ============================================================================
+
+# 3. CORE SST PROCESSING LOGIC
+
+# ============================================================================
+
+
+
+def processRegionSST(
+
+    region: dict,
+
+    coralCounts: dict,
+
+    bypass_daily_alert_lock: bool = False,
+    
+    http_session: requests.Session | None = None,
+
+) -> dict | None:
+
+    """
+
+    
+
+
+
+    Args:
+
+        
+
+        coralCounts: Dictionary mapping regionID to coral count
+
+        bypass_daily_alert_lock: Skip one-alert-per-day suppression when True
+
+        http_session: Optional shared requests.Session for NOAA calls
+
+
+
+    Returns:
+
+        Processed region data dict, or None if processing fails
+
+    """
+
+    regionID = region["regionID"]
+
+    regionName = region["regionName"]
+
+    latitude = float(region["latitude"])
+
+    longitude = float(region["longitude"])
+# 6. CACHE MANAGEMENT
+
+
+    owns_session = http_session is None
+
+    session = http_session or requests.Session()
+    
+
+    
+    try:
+
         try:
-            send_email_to_recipients(
-                item["emails"],
-                item["subject"],
-                item["body"],
-                log_prefix="[SST]",
+
+    
+
+        except NOAAERDDAPError as e:
+
+    
+
+            return None
+
+
+
+        ensureSSTHistory(regionID, latitude, longitude, session)
+
+
+
+        sstValue = fetch_latest_sst(latitude, longitude, session=session)
+
+        if sstValue is None:
+
+            recent = getRecentReadings(regionID, weeks=2)
+
+# 7. API ROUTES
+
+                sstValue = float(recent[0]["sstValue"])
+
+                print(f"[SST] Using fallback DB reading for {regionName}")
+
+            else:
+    
+                print(f"[SST] Skipping {regionName} — NOAA fetch failed and no fallback data")
+
+                return None
+
+
+
+        upsertTodayReading(regionID, sstValue)
+
+
+
+        dhw, daysAccumulated, hotspot = computeRegionMetrics(regionID, mmm, sstValue)
+
+        alertLevel = get_alert_level(hotspot, dhw)
+
+        status = classify_bleaching_status(hotspot, dhw)
+
+
+
+        should_send_alert = (
+
+            bool(alertLevel)
+
+            and alertLevel in ALERT_EMAIL_LEVELS
+
+            and (bypass_daily_alert_lock or not alert_sent_recently)
+
+        )
+
+
+
+        pending_alert = None
+
+        if should_send_alert:
+
+            recipients = getNotificationRecipients()
+
+            if not recipients:
+
+                print("[SST] No notification recipients found for roleID 1 or 2")
+
+            else:
+
+                subject = f"[CoralKita] {alertLevel} - {regionName}"
+
+                body = (
+
+                    f"Dear CoralKita User,\n\n"
+
+                    f"A coral bleaching {alertLevel.lower()} has been detected at {regionName}.\n\n"
+
+                    f"Current SST: {sstValue:.2f} °C\n"
+
+                    f"MMM Climatology: {mmm:.2f} °C\n"
+
+                    f"Current Hotspot: {hotspot:.2f} °C\n"
+
+                    f"Current DHW: {dhw} °C-weeks\n"
+
+                    f"Alert Level: {alertLevel}\n"
+
+                    f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')} UTC\n\n"
+
+                    f"Please log in to CoralKita to review the latest SST data and take necessary action.\n\n"
+
+                    f"- CoralKita Team"
+
+                )
+
+                emails = [u["email"] for u in recipients if u.get("email")]
+
+                pending_alert = {"emails": emails, "subject": subject, "body": body}
+
+            createAlert(regionID, alertLevel)
+
+            print(
+
+                f"[SST] Alert triggered for {regionName}: "
+
+                f"dhw={dhw}, hotspot={hotspot}, level={alertLevel}, "
+
+                f"bypass_lock={bypass_daily_alert_lock}"
+
             )
+
+        elif alertLevel:
+
+            print(
+
+                f"[SST] Alert suppressed for {regionName}: "
+
+                f"dhw={dhw}, hotspot={hotspot}, level={alertLevel}, "
+
+                f"alert_sent_recently={alert_sent_recently}"
+
+            )
+
+        else:
+
+            print(
+
+                f"[SST] No alert for {regionName}: dhw={dhw}, hotspot={hotspot}, mmm={mmm:.2f}"
+
+            )
+
+
+
+        result = {
+
+            "regionID": regionID,
+
+            "regionName": regionName,
+
+            "sstValue": sstValue,
+
+            "mmm": round(mmm, 2),
+
+            "dhw": dhw,
+
+            "daysAccumulated": daysAccumulated,
+
+            "hotspot": hotspot,
+
+            "alertLevel": alertLevel,
+
+            "status": status,
+
+            "coralCount": coralCounts.get(regionID, 0),
+
+            "latitude": latitude,
+
+            "longitude": longitude,
+
+        }
+
+        if pending_alert:
+
+            result["_pending_alert"] = pending_alert
+
+        return result
+
+    finally:
+
+        if owns_session:
+
+            session.close()
+
+
+
+
+
+def _dispatch_alert_emails(pending_alerts: list[dict]) -> None:
+
+    """Send alert emails on a background thread so /api/sst can respond quickly."""
+
+    for item in pending_alerts:
+
+        try:
+
+            send_email_to_recipients(
+
+                item["emails"],
+
+                item["subject"],
+
+                item["body"],
+
+                log_prefix="[SST]",
+
+            )
+
         except Exception as e:
+
             print(f"[SST] Background email dispatch failed: {e}")
 
 
+
+
+
 def processSSTForAllRegions(bypass_daily_alert_lock: bool = False) -> list:
+
     """
+
     Process SST data for all regions in parallel.
-    
+
+
+
     Returns:
+
         List of processed region data dictionaries
+
     """
+
     regions = getAllRegions()
+
     coralCounts = getCoralCountByRegion()
+
     results = []
-    
+
+
+
     with ThreadPoolExecutor(max_workers=4) as executor:
+
         futures = [
+
             executor.submit(processRegionSST, region, coralCounts, bypass_daily_alert_lock)
+
             for region in regions
+
         ]
-        
+
+
+
         pending_alerts: list[dict] = []
+
         for future in as_completed(futures):
+
             result = future.result()
+
             if result is None:
+
                 continue
+
             pending = result.pop("_pending_alert", None)
+
             if pending:
+
                 pending_alerts.append(pending)
+
             results.append(result)
 
+
+
     if pending_alerts:
+
         threading.Thread(
+
             target=_dispatch_alert_emails,
+
             args=(pending_alerts,),
+
             daemon=True,
+
             name="sst-alert-email",
+
         ).start()
 
+
+
     return results
 
 
+
+
+
 # ============================================================================
-# 6. CACHE MANAGEMENT
+
+# 4. CACHE MANAGEMENT
+
 # ============================================================================
+
+
 
 def getCachedSST(bypass_daily_alert_lock: bool = False) -> list:
+
     """
+
     Get cached SST data or fetch fresh if cache is stale.
-    
+
+
+
     Cache resets daily at midnight.
-    
+
+
+
     Returns:
+
         List of processed region data dictionaries
+
     """
+
     today = datetime.now().date()
-    
+
+
+
     if _sst_cache["data"] is not None and _sst_cache["date"] == today:
+
         print("[SST] Returning cached data")
+
         return _sst_cache["data"]
-    
+
+
+
     print("[SST] Cache miss — fetching from NOAA")
+
     results = processSSTForAllRegions(bypass_daily_alert_lock=bypass_daily_alert_lock)
+
     _sst_cache["data"] = results
+
     _sst_cache["date"] = today
+
     return results
+
+
+
 
 
 def clearSSTCache() -> None:
+
     """Force clear the SST cache."""
+
     global _sst_cache
+
     _sst_cache = {"data": None, "date": None}
+
     print("[SST] Cache cleared")
 
 
+
+
+
 # ============================================================================
-# 7. API ROUTES
+
+# 5. API ROUTES
+
 # ============================================================================
+
+
 
 @sst_bp.route("/api/sst")
+
 def sstData():
+
     """
+
     GET endpoint for SST monitoring data.
-    
+
+
+
     Returns JSON array of processed region data with SST, DHW, and alert status.
+
     Requires user authentication.
+
     """
+
     if "user_id" not in session:
+
         return jsonify({"error": "Unauthorized"}), 401
 
+
+
     # Testing helper: /api/sst?refresh=1 will force reprocessing (including alert logic).
+
     # In SST_TEST_MODE, always refresh.
+
     if SST_TEST_MODE or request.args.get("refresh") == "1":
+
         clearSSTCache()
+
     bypass_daily_alert_lock = SST_TEST_MODE or (request.args.get("force_alert") == "1")
 
+
+
     try:
+
         results = getCachedSST(bypass_daily_alert_lock=bypass_daily_alert_lock)
+
         return jsonify(results)
+
     except Exception as e:
+
         print(f"[SST] /api/sst error: {e}")
+
         return jsonify({"error": "Failed to load SST data"}), 500
+
+
