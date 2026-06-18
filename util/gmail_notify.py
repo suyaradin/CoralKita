@@ -18,13 +18,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 TOKEN_PATH = "/etc/secrets/token.json" if os.path.exists("/etc/secrets/token.json") else "token.json"
-SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
-
-# Reuse one service + sender per process; lock for thread-safe parallel SST workers
-_service = None
-_sender_email: str | None = None
-_service_lock = threading.Lock()
-
+WRITABLE_TOKEN_PATH = "/tmp/token.json"
 
 def get_gmail_service():
     """Initialize and return a cached Gmail API service."""
@@ -32,13 +26,17 @@ def get_gmail_service():
 
     with _service_lock:
         creds = None
-        if os.path.exists(TOKEN_PATH):
-            creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+        
+        # Try writable path first (refreshed token), then secret file
+        actual_path = WRITABLE_TOKEN_PATH if os.path.exists(WRITABLE_TOKEN_PATH) else TOKEN_PATH
+        
+        if os.path.exists(actual_path):
+            creds = Credentials.from_authorized_user_file(actual_path, SCOPES)
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
-                with open(TOKEN_PATH, "w", encoding="utf-8") as token:
+                with open(WRITABLE_TOKEN_PATH, "w", encoding="utf-8") as token:
                     token.write(creds.to_json())
             else:
                 raise RuntimeError(
@@ -50,7 +48,6 @@ def get_gmail_service():
             _sender_email = None
 
         return _service
-
 
 def get_sender_email() -> str | None:
     """
