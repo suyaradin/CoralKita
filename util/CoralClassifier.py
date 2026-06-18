@@ -2,11 +2,10 @@ import numpy as np
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
-import tensorflow as tf
 from PIL import Image
 
 # Class labels matching training data
-# Index 0 = bleached, Index 1 = non-bleached
+# Index 0 = bleached, Index 1 = non-bleaching
 CLASS_LABELS = {0: 'Bleaching', 1: 'Non-Bleaching'}
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'ml_models', 'coral_model_v2.keras')
@@ -16,6 +15,7 @@ _model = None
 def loadModel():
     global _model
     if _model is None:
+        import tensorflow as tf
         print("[ML] Loading coral classification model...")
         _model = tf.keras.models.load_model(os.path.abspath(MODEL_PATH))
         print("[ML] Model loaded successfully.")
@@ -32,6 +32,7 @@ def classifyCoral(imagePath):
         dict with keys: healthName, confidenceScore
     """
     try:
+        import tensorflow as tf
         model = loadModel()
 
         img = Image.open(imagePath).convert('RGB')
