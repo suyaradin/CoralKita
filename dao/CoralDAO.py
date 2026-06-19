@@ -8,40 +8,15 @@ growth forms, images, classifications, and reviews.
 
 import mysql.connector
 from util.DBConnection import getConnection
-
+from datetime import datetime, timezone, timedelta
 
 # ============================================================================
 # 1. BASIC CRUD OPERATIONS
 # ============================================================================
 
-def createCoral(
-    genus: str,
-    species: str,
-    growthFormID: int,
-    waterTempMin: float,
-    waterTempMax: float,
-    pHMin: float,
-    pHMax: float,
-    regionID: int,
-    submittedBy: int
-) -> int | None:
-    """
-    Create a new coral entry.
-    
-    Args:
-        genus: Coral genus name
-        species: Coral species name
-        growthFormID: ID of the growth form
-        waterTempMin: Minimum water temperature (°C)
-        waterTempMax: Maximum water temperature (°C)
-        pHMin: Minimum pH level
-        pHMax: Maximum pH level
-        regionID: ID of the region
-        submittedBy: ID of the user who submitted the coral
-    
-    Returns:
-        The ID of the newly created coral, or None if failed
-    """
+MYT = timezone(timedelta(hours=8))
+
+def createCoral(genus, species, growthFormID, waterTempMin, waterTempMax, pHMin, pHMax, regionID, submittedBy):
     conn = getConnection()
     cursor = None
     
@@ -52,11 +27,12 @@ def createCoral(
             INSERT INTO coral (
                 genus, species, growthFormID,
                 waterTempMin, waterTempMax,
-                pHMin, pHMax, regionID, submittedBy
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                pHMin, pHMax, regionID, submittedBy, submittedAt
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (genus, species, growthFormID, waterTempMin, 
-             waterTempMax, pHMin, pHMax, regionID, submittedBy)
+            (genus, species, growthFormID, waterTempMin,
+             waterTempMax, pHMin, pHMax, regionID, submittedBy,
+             datetime.now(MYT))
         )
         conn.commit()
         return cursor.lastrowid
@@ -65,10 +41,8 @@ def createCoral(
         conn.rollback()
         return None
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        if cursor: cursor.close()
+        if conn: conn.close()
 
 
 def getCoralByID(coralID: int) -> dict | None:

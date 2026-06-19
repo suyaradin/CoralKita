@@ -7,35 +7,27 @@ Handles CRUD operations for coral images including upload tracking and relations
 
 import mysql.connector
 from util.DBConnection import getConnection
+from datetime import datetime, timezone, timedelta
 
+MYT = timezone(timedelta(hours=8))
 
 # ============================================================================
 # 1. CREATE OPERATIONS
 # ============================================================================
 
 def createCoralImage(imagePath: str, uploadBy: int, coralID: int) -> int | None:
-    """
-    Create a new coral image record.
-    
-    Args:
-        imagePath: Relative path to the uploaded image file
-        uploadBy: ID of the user who uploaded the image
-        coralID: ID of the coral this image belongs to
-    
-    Returns:
-        The ID of the newly created image record, or None if failed
-    """
     conn = getConnection()
     cursor = None
     
     try:
         cursor = conn.cursor()
+        upload_time = datetime.now(MYT)          # ← MYT timestamp
         cursor.execute(
             """
-            INSERT INTO coralimage (imagePath, uploadBy, coralID)
-            VALUES (%s, %s, %s)
+            INSERT INTO coralimage (imagePath, uploadBy, coralID, uploadDate)
+            VALUES (%s, %s, %s, %s)
             """,
-            (imagePath, uploadBy, coralID)
+            (imagePath, uploadBy, coralID, upload_time)
         )
         conn.commit()
         return cursor.lastrowid
