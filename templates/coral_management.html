@@ -20,7 +20,7 @@
                                     <th>ID</th>
                                     <th>Image</th>
                                     <th>Coral</th>
-                                    <th>Location (Photo Taken) (Photo Taken) (photo taken)</th>
+                                    <th>Location (Photo Taken) (photo taken)</th>
                                     <th class="col-health">Health Status</th>
                                     <th>Confidence</th>
                                     <th>Submitted Date</th>
@@ -99,7 +99,7 @@
                                     <th>ID</th>
                                     <th>Image</th>
                                     <th>Coral Species</th>
-                                    <th>Location (Photo Taken) (Photo Taken) (photo taken)</th>
+                                    <th>Location (Photo Taken) (photo taken)</th>
                                     <th class="col-health">Health Status</th>
                                     <th>Confidence</th>
                                     <th>Submitted By</th>
@@ -207,7 +207,7 @@
                         </div>
                         
                         <div class="profile-input-group">
-                            <label class="form-label">Location (Photo Taken) (Photo Taken) *</label>
+                            <label class="form-label">Location (Photo Taken) *</label>
                             <select style="width: 100%; padding: 10px 14px; border: 1px solid #111111; background-color: #ffffff; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.85rem;" id="regionID" name="regionID" required>
                                 <option value="">Select Island</option>
                                 <option value="1"{% if prefillCoral and prefillCoral.regionID == 1 %} selected{% endif %}>Pulau Redang</option>
@@ -283,7 +283,7 @@
                                     <th>ID</th>
                                     <th>Image</th>
                                     <th>Coral Species</th>
-                                    <th>Location (Photo Taken) (Photo Taken)</th>
+                                    <th>Location (Photo Taken)</th>
                                     <th class="col-health">Health Status</th>
                                     <th>Submitted Date</th>
                                     <th>Status</th>
@@ -322,7 +322,7 @@
                                         <div class="action-buttons">
                                             <button type="button" class="square-submit-btn btn-view" data-coral-id="{{ coral.coralID }}">View Details</button>
                                             {% if coral.reviewStatus == 'approved' %}
-                                            <button class="square-submit-btn" onclick="window.Location (Photo Taken) (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}?prefillCoralID={{ coral.coralID }}'">Add Health Log</button>
+                                            <button class="square-submit-btn" onclick="window.Location (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}?prefillCoralID={{ coral.coralID }}'">Add Health Log</button>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -337,7 +337,7 @@
                                 You haven't submitted any corals yet.<br>
                                 Click "Upload Coral" to add your first submission!
                             </div>
-                            <button class="form-btn" onclick="window.Location (Photo Taken) (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">Upload Coral</button>
+                            <button class="form-btn" onclick="window.Location (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">Upload Coral</button>
                         </div>
                         {% endif %}
                     </div>
@@ -356,7 +356,7 @@
                         <div class="log-timeline" data-coral-id="{{ coral.coralID }}">
                             <div class="log-header">
                                 <h3>{{ coral.coralID }} - {{ coral.genus }} {{ coral.species }}</h3>
-                                <div class="log-meta">Location (Photo Taken) (Photo Taken): {{ coral.regionName }}</div>
+                                <div class="log-meta">Location (Photo Taken): {{ coral.regionName }}</div>
                             </div>
                             
                             <div class="timeline-stats">
@@ -424,7 +424,7 @@
                             You don't have any coral submissions yet.<br>
                             Upload a coral to start tracking its health!
                         </div>
-                        <button class="form-btn" onclick="window.Location (Photo Taken) (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">Upload Coral</button>
+                        <button class="form-btn" onclick="window.Location (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">Upload Coral</button>
                     </div>
                     {% endif %}
                     </div>
