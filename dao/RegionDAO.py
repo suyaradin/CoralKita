@@ -2,7 +2,7 @@
 Region DAO Module
 =================
 Data Access Object for Region table operations.
-Handles retrieval of geographic region reference data for coral locations.
+Handles retrieval of geographic region reference data for coral Location (Photo Taken) (Photo Taken) (Photo Taken)s.
 """
 
 import mysql.connector
