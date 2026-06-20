@@ -34,7 +34,13 @@
                                     <td>{{ coral.coralID }}</td>
                                     <td>
                                         {% if coral.imagePath %}
-                                        <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" 
+                                        <img src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
+    <img src="{{ coral.imagePath }}" ...>
+{% elif coral.imagePath %}
+    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
+{% else %}
+    <div class="no-image">No image</div>
+{% endif %} }}" 
                                             alt="Coral image" width="50"
                                             data-image-path="{{ coral.imagePath }}">
                                         {% else %}
@@ -113,7 +119,13 @@
                                     <td>{{ coral.coralID }}</td>
                                     <td>
                                         {% if coral.imagePath %}
-                                        <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" 
+                                        <img src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
+    <img src="{{ coral.imagePath }}" ...>
+{% elif coral.imagePath %}
+    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
+{% else %}
+    <div class="no-image">No image</div>
+{% endif %} }}" 
                                             alt="{{ coral.species }}" width="60"
                                             data-image-path="{{ coral.imagePath }}">
                                         {% else %}
@@ -296,7 +308,13 @@
                                     <td>{{ coral.coralID }}</td>
                                     <td>
                                         {% if coral.imagePath %}
-                                        <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" width="50" class="coral-thumbnail" data-image-path="{{ coral.imagePath }}">
+                                        <img src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
+    <img src="{{ coral.imagePath }}" ...>
+{% elif coral.imagePath %}
+    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
+{% else %}
+    <div class="no-image">No image</div>
+{% endif %} }}" width="50" class="coral-thumbnail" data-image-path="{{ coral.imagePath }}">
                                         {% else %}
                                         <div class="no-image">No image</div>
                                         {% endif %}

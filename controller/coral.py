@@ -26,6 +26,33 @@ from util.CoralClassifier import classifyCoral
 from util.DBConnection import getConnection
 from util.gmail_notify import send_email_to_recipients
 
+import cloudinary
+import cloudinary.uploader
+import requests as http_requests
+import tempfile
+
+# Configure Cloudinary
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
+
+def save_uploaded_image(file, app_root: str) -> tuple[str, str]:
+    """Upload image to Cloudinary."""
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = secure_filename(f"{timestamp}_{file.filename}")
+    public_id = f"coralkita/{filename}"
+    
+    result = cloudinary.uploader.upload(
+        file,
+        public_id=public_id,
+        overwrite=True
+    )
+    
+    # Return cloudinary URL as both filename and filepath
+    return result["secure_url"], result["secure_url"]
+
 # ============================================================================
 # 1. BLUEPRINT & CONSTANTS
 # ============================================================================
@@ -270,22 +297,21 @@ def save_coral_submission(
         Tuple of (success, error_message, result_data)
     """
     try:
-        # Save image
-        filename, filepath = save_uploaded_image(image_file, app_root)
+        # Upload image to Cloudinary
+        image_url, filepath = save_uploaded_image(image_file, app_root)
         
-        # Create/UPDATE coral record
+        # Create/update coral record
         coral_id = create_coral_record(form_data, user_id, original_coral_id)
         if not coral_id:
             return False, "Failed to create coral entry", None
         
-        # Add coral image
-        image_id = addCoralImage(filename, user_id, coral_id)
+        # Add coral image - store Cloudinary URL as imagePath
+        image_id = addCoralImage(image_url, user_id, coral_id)
         if not image_id:
             return False, "Failed to save image", None
         
-        # Process classification
-        filepath_absolute = os.path.join(app_root, UPLOAD_FOLDER_RELATIVE, filename)
-        health_name, confidence_score = process_coral_classification(filepath_absolute)
+        # Process classification from Cloudinary URL
+        health_name, confidence_score = process_coral_classification_from_url(image_url)
         
         # Get health status ID
         health_status = getHealthStatusByName(health_name)
@@ -312,7 +338,6 @@ def save_coral_submission(
     except Exception as e:
         print(f"Error in coral submission: {e}")
         return False, str(e), None
-
 
 # ============================================================================
 # 6. MAIN SUBMISSION ROUTE

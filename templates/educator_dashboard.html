@@ -80,7 +80,13 @@
                  <div class="testimonial-card edu-card coral-card" 
                      data-genus="{{ coral.genus }}" 
                      data-health="{{ coral.healthName or '' }}"
-                     data-image-src="{{ url_for('static', filename='uploads/' + coral.imagePath) if coral.imagePath else '' }}"
+                     data-image-src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
+    <img src="{{ coral.imagePath }}" ...>
+{% elif coral.imagePath %}
+    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
+{% else %}
+    <div class="no-image">No image</div>
+{% endif %} if coral.imagePath else '' }}"
                      data-uploader-name="{{ coral.uploadedByName or coral.submittedBy or 'CoralKita' }}">
                     
                     <div class="card-check-wrapper">
@@ -89,7 +95,13 @@
 
                     <div class="coral-card-img {{ (coral.healthName or 'pending')|lower|replace('-','') }}">
                         {% if coral.imagePath %}
-                        <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" alt="{{ coral.genus }} {{ coral.species }}">
+                        <img src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
+    <img src="{{ coral.imagePath }}" ...>
+{% elif coral.imagePath %}
+    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
+{% else %}
+    <div class="no-image">No image</div>
+{% endif %} }}" alt="{{ coral.genus }} {{ coral.species }}">
                         {% else %}
                         <span class="emoji">🪸</span>
                         {% endif %}
