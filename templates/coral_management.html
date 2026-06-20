@@ -11,7 +11,6 @@
                     <div class="recent-submission-header">
                         <div class="overview-title">Pending Review</div>
                     </div>
-                    <!-- FIXED: Moved container outside Jinja condition -->
                     <div class="recent-submission-content">
                         {% if corals and corals|selectattr('reviewStatus', 'equalto', 'pending')|list|length > 0 %}
                         <table class="edu-stats-table" id="pendingReviewTable">
@@ -20,7 +19,7 @@
                                     <th>ID</th>
                                     <th>Image</th>
                                     <th>Coral</th>
-                                    <th>Location (Photo Taken) (photo taken)</th>
+                                    <th>Location</th>
                                     <th class="col-health">Health Status</th>
                                     <th>Confidence</th>
                                     <th>Submitted Date</th>
@@ -30,21 +29,15 @@
                             <tbody>
                                 {% for coral in corals %}
                                 {% if coral.reviewStatus == 'pending' %}
-                                <tr data-coral-id="{{ coral.coralID }}" data-review-id="{{ coral.reviewID }}"">
+                                <tr data-coral-id="{{ coral.coralID }}" data-review-id="{{ coral.reviewID }}">
                                     <td>{{ coral.coralID }}</td>
                                     <td>
-                                        {% if coral.imagePath %}
-                                        <img src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
-    <img src="{{ coral.imagePath }}" ...>
-{% elif coral.imagePath %}
-    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
-{% else %}
-    <div class="no-image">No image</div>
-{% endif %} }}" 
-                                            alt="Coral image" width="50"
-                                            data-image-path="{{ coral.imagePath }}">
+                                        {% if coral.imagePath and coral.imagePath.startswith('http') %}
+                                            <img src="{{ coral.imagePath }}" alt="Coral image" width="50" data-image-path="{{ coral.imagePath }}">
+                                        {% elif coral.imagePath %}
+                                            <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" alt="Coral image" width="50" data-image-path="{{ coral.imagePath }}">
                                         {% else %}
-                                        <div class="no-image">No image</div>
+                                            <div class="no-image">No image</div>
                                         {% endif %}
                                     </td>
                                     <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
@@ -105,7 +98,7 @@
                                     <th>ID</th>
                                     <th>Image</th>
                                     <th>Coral Species</th>
-                                    <th>Location (Photo Taken) (photo taken)</th>
+                                    <th>Location</th>
                                     <th class="col-health">Health Status</th>
                                     <th>Confidence</th>
                                     <th>Submitted By</th>
@@ -118,18 +111,12 @@
                                 <tr data-coral-id="{{ coral.coralID }}">
                                     <td>{{ coral.coralID }}</td>
                                     <td>
-                                        {% if coral.imagePath %}
-                                        <img src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
-    <img src="{{ coral.imagePath }}" ...>
-{% elif coral.imagePath %}
-    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
-{% else %}
-    <div class="no-image">No image</div>
-{% endif %} }}" 
-                                            alt="{{ coral.species }}" width="60"
-                                            data-image-path="{{ coral.imagePath }}">
+                                        {% if coral.imagePath and coral.imagePath.startswith('http') %}
+                                            <img src="{{ coral.imagePath }}" alt="{{ coral.species }}" width="60" data-image-path="{{ coral.imagePath }}">
+                                        {% elif coral.imagePath %}
+                                            <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" alt="{{ coral.species }}" width="60" data-image-path="{{ coral.imagePath }}">
                                         {% else %}
-                                        <div class="no-image">No image</div>
+                                            <div class="no-image">No image</div>
                                         {% endif %}
                                     </td>
                                     <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
@@ -219,7 +206,7 @@
                         </div>
                         
                         <div class="profile-input-group">
-                            <label class="form-label">Location (Photo Taken) *</label>
+                            <label class="form-label">Location *</label>
                             <select style="width: 100%; padding: 10px 14px; border: 1px solid #111111; background-color: #ffffff; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.85rem;" id="regionID" name="regionID" required>
                                 <option value="">Select Island</option>
                                 <option value="1"{% if prefillCoral and prefillCoral.regionID == 1 %} selected{% endif %}>Pulau Redang</option>
@@ -277,12 +264,11 @@
             </div>
         </form>
     </div>
-                </div>
+</div>
                 {% endif %}
 
                 <!-- MY CORAL LIBRARY SECTION (Marine Biologist) -->
                 {% if active_section == 'my_coral_library' %}
-                <!-- FIXED: Wrapped unclosed template structures -->
                 <div class="recent-submission" id="my-coral-library">
                     <div class="recent-submission-header">
                         <div class="overview-title">My Coral Library</div>
@@ -295,7 +281,7 @@
                                     <th>ID</th>
                                     <th>Image</th>
                                     <th>Coral Species</th>
-                                    <th>Location (Photo Taken)</th>
+                                    <th>Location</th>
                                     <th class="col-health">Health Status</th>
                                     <th>Submitted Date</th>
                                     <th>Status</th>
@@ -307,16 +293,12 @@
                                 <tr data-coral-id="{{ coral.coralID }}">
                                     <td>{{ coral.coralID }}</td>
                                     <td>
-                                        {% if coral.imagePath %}
-                                        <img src="{{ {% if coral.imagePath and coral.imagePath.startswith('http') %}
-    <img src="{{ coral.imagePath }}" ...>
-{% elif coral.imagePath %}
-    <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" ...>
-{% else %}
-    <div class="no-image">No image</div>
-{% endif %} }}" width="50" class="coral-thumbnail" data-image-path="{{ coral.imagePath }}">
+                                        {% if coral.imagePath and coral.imagePath.startswith('http') %}
+                                            <img src="{{ coral.imagePath }}" width="50" class="coral-thumbnail" data-image-path="{{ coral.imagePath }}">
+                                        {% elif coral.imagePath %}
+                                            <img src="{{ url_for('static', filename='uploads/' + coral.imagePath) }}" width="50" class="coral-thumbnail" data-image-path="{{ coral.imagePath }}">
                                         {% else %}
-                                        <div class="no-image">No image</div>
+                                            <div class="no-image">No image</div>
                                         {% endif %}
                                     </td>
                                     <td><em>{{ coral.genus }} {{ coral.species }}</em></td>
@@ -340,7 +322,7 @@
                                         <div class="action-buttons">
                                             <button type="button" class="square-submit-btn btn-view" data-coral-id="{{ coral.coralID }}">View Details</button>
                                             {% if coral.reviewStatus == 'approved' %}
-                                            <button class="square-submit-btn" onclick="window.Location (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}?prefillCoralID={{ coral.coralID }}'">Add Health Log</button>
+                                            <button class="square-submit-btn" onclick="window.location.href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}?prefillCoralID={{ coral.coralID }}'">Add Health Log</button>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -355,7 +337,7 @@
                                 You haven't submitted any corals yet.<br>
                                 Click "Upload Coral" to add your first submission!
                             </div>
-                            <button class="form-btn" onclick="window.Location (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">Upload Coral</button>
+                            <button class="form-btn" onclick="window.location.href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">Upload Coral</button>
                         </div>
                         {% endif %}
                     </div>
@@ -374,7 +356,7 @@
                         <div class="log-timeline" data-coral-id="{{ coral.coralID }}">
                             <div class="log-header">
                                 <h3>{{ coral.coralID }} - {{ coral.genus }} {{ coral.species }}</h3>
-                                <div class="log-meta">Location (Photo Taken): {{ coral.regionName }}</div>
+                                <div class="log-meta">Location: {{ coral.regionName }}</div>
                             </div>
                             
                             <div class="timeline-stats">
@@ -442,7 +424,7 @@
                             You don't have any coral submissions yet.<br>
                             Upload a coral to start tracking its health!
                         </div>
-                        <button class="form-btn" onclick="window.Location (Photo Taken).href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">Upload Coral</button>
+                        <button class="form-btn" onclick="window.location.href='{{ url_for('dashboard.dashboard_section', section='upload_coral') }}'">+ Upload Coral</button>
                     </div>
                     {% endif %}
                     </div>
