@@ -6,6 +6,7 @@ and email notifications for coral entries.
 """
 
 import os
+import tempfile
 from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for, current_app
@@ -26,6 +27,21 @@ from util.CoralClassifier import classifyCoral
 from util.DBConnection import getConnection
 from util.gmail_notify import send_email_to_recipients
 
+# Cloudinary
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
+
+# ============================================================================
+# 0. CLOUDINARY CONFIGURATION
+# ============================================================================
+
+# Configure Cloudinary using environment variables
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET')
+)
 
 # ============================================================================
 # 1. BLUEPRINT & CONSTANTS
@@ -70,21 +86,39 @@ def secure_image_filename(original_filename: str) -> str:
 
 def save_uploaded_image(file, app_root: str) -> tuple[str, str]:
     """
-    Save uploaded image to disk.
+    Save uploaded image to Cloudinary.
     
     Args:
         file: Uploaded file object
-        app_root: Application root path
+        app_root: Application root path (kept for compatibility)
     
     Returns:
-        Tuple of (filename, filepath)
+        Tuple of (image_url, public_id)
     """
-    filename = secure_image_filename(file.filename)
-    upload_folder = os.path.join(app_root, UPLOAD_FOLDER_RELATIVE)
-    os.makedirs(upload_folder, exist_ok=True)
-    filepath = os.path.join(upload_folder, filename)
-    file.save(filepath)
-    return filename, filepath
+    try:
+        # Reset file pointer to beginning
+        file.seek(0)
+        
+        # Upload to Cloudinary using your preset
+        result = cloudinary.uploader.upload(
+            file,
+            upload_preset="coral_upload",  # Your preset name
+            folder="coral_upload"  # Asset folder
+        )
+        
+        # Get the secure URL and public_id
+        image_url = result['secure_url']
+        public_id = result['public_id']
+        
+        print(f"[Cloudinary] Upload successful!")
+        print(f"[Cloudinary] URL: {image_url}")
+        print(f"[Cloudinary] Public ID: {public_id}")
+        
+        return image_url, public_id
+        
+    except Exception as e:
+        print(f"[Cloudinary] Upload error: {e}")
+        raise
 
 
 # ============================================================================
@@ -205,7 +239,7 @@ def process_coral_classification(image_path: str) -> tuple[str, float]:
     Process coral image classification.
     
     Args:
-        image_path: Absolute path to the image file
+        image_path: Path to the image file (local file path)
     
     Returns:
         Tuple of (health_name, confidence_score)
@@ -258,61 +292,127 @@ def save_coral_submission(
     original_coral_id: int | None = None
 ) -> tuple[bool, str | None, dict | None]:
     """
-    Complete coral submission workflow.
+    Complete coral submission workflow with Cloudinary storage.
     
     Args:
         form_data: Dictionary containing form fields
         user_id: ID of the submitting user
         image_file: Uploaded image file object
-        app_root: Application root path
+        app_root: Application root path (kept for compatibility)
         original_coral_id: ID of existing coral for updates (optional)
     
     Returns:
         Tuple of (success, error_message, result_data)
     """
+    # Initialize variables for cleanup
+    temp_path = None
+    health_name = "Non-Bleaching"
+    confidence_score = 0.0
+    image_url = None
+    public_id = None
+    
     try:
-        # Save image
-        filename, filepath = save_uploaded_image(image_file, app_root)
+        # ============================================================
+        # 1. SAVE TEMPORARY FILE FOR CLASSIFICATION
+        # ============================================================
+        try:
+            # Reset file pointer to beginning
+            image_file.seek(0)
+            
+            # Create temp file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                tmp_file.write(image_file.read())
+                temp_path = tmp_file.name
+            
+            print(f"[Coral] Temp file created for classification: {temp_path}")
+            
+            # Classify using the temp file
+            health_name, confidence_score = process_coral_classification(temp_path)
+            print(f"[Coral] Classification: {health_name} ({confidence_score:.2%})")
+            
+        except Exception as e:
+            print(f"[Coral] Classification error: {e}")
+            import traceback
+            traceback.print_exc()
+            # Continue with default values
+            health_name = "Non-Bleaching"
+            confidence_score = 0.0
         
-        # Create/UPDATE coral record
+        # ============================================================
+        # 2. UPLOAD TO CLOUDINARY
+        # ============================================================
+        image_url, public_id = save_uploaded_image(image_file, app_root)
+        
+        # ============================================================
+        # 3. CREATE/UPDATE CORAL RECORD
+        # ============================================================
         coral_id = create_coral_record(form_data, user_id, original_coral_id)
         if not coral_id:
             return False, "Failed to create coral entry", None
         
-        # Add coral image
-        image_id = addCoralImage(filename, user_id, coral_id)
+        # ============================================================
+        # 4. SAVE IMAGE URL TO DATABASE
+        # ============================================================
+        # Store the FULL Cloudinary URL in the database
+        image_id = addCoralImage(image_url, user_id, coral_id)
         if not image_id:
             return False, "Failed to save image", None
         
-        # Process classification
-        filepath_absolute = os.path.join(app_root, UPLOAD_FOLDER_RELATIVE, filename)
-        health_name, confidence_score = process_coral_classification(filepath_absolute)
-        
+        # ============================================================
+        # 5. CREATE CLASSIFICATION RECORD
+        # ============================================================
         # Get health status ID
         health_status = getHealthStatusByName(health_name)
         health_id = health_status['healthID'] if health_status else 1
         
-        # Create classification record
         class_id = createClassification(image_id, health_id, confidence_score)
         if not class_id:
-            return False, "Failed to classify coral", None
+            return False, "Failed to classify coral", {
+                "coral_id": coral_id,
+                "image_url": image_url,
+                "partial": True
+            }
         
-        # Create review record
+        # ============================================================
+        # 6. CREATE REVIEW RECORD
+        # ============================================================
         review_id = createReview(class_id)
         if not review_id:
-            return False, "Coral saved but review creation failed", {"coral_id": coral_id, "partial": True}
+            return False, "Coral saved but review creation failed", {
+                "coral_id": coral_id,
+                "image_url": image_url,
+                "partial": True
+            }
         
+        # ============================================================
+        # 7. RETURN SUCCESS
+        # ============================================================
         return True, None, {
             "coral_id": coral_id,
             "review_id": review_id,
+            "image_url": image_url,
+            "public_id": public_id,
             "health_name": health_name,
             "confidence_score": confidence_score,
             "is_update": bool(original_coral_id)
         }
         
     except Exception as e:
-        print(f"Error in coral submission: {e}")
+        print(f"[Coral] Error in coral submission: {e}")
+        import traceback
+        traceback.print_exc()
         return False, str(e), None
+        
+    finally:
+        # ============================================================
+        # 8. CLEAN UP TEMP FILE
+        # ============================================================
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+                print(f"[Coral] Temp file cleaned up: {temp_path}")
+            except Exception as e:
+                print(f"[Coral] Error cleaning up temp file: {e}")
 
 
 # ============================================================================

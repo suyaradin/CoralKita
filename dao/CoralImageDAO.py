@@ -16,18 +16,30 @@ MYT = timezone(timedelta(hours=8))
 # ============================================================================
 
 def createCoralImage(imagePath: str, uploadBy: int, coralID: int) -> int | None:
+    """
+    Create a new coral image record.
+    
+    Args:
+        imagePath: Cloudinary URL or relative path to the image
+                   (e.g., "https://res.cloudinary.com/.../abc123.jpg")
+        uploadBy: ID of the user who uploaded the image
+        coralID: ID of the coral this image belongs to
+    
+    Returns:
+        The ID of the newly created image record, or None if failed
+    """
     conn = getConnection()
     cursor = None
     
     try:
         cursor = conn.cursor()
-        upload_time = datetime.now(MYT)          # ← MYT timestamp
+        upload_time = datetime.now(MYT)
         cursor.execute(
             """
             INSERT INTO coralimage (imagePath, uploadBy, coralID, uploadDate)
             VALUES (%s, %s, %s, %s)
             """,
-            (imagePath, uploadBy, coralID, upload_time)
+            (imagePath, uploadBy, coralID, upload_time)  # ← imagePath can be URL now!
         )
         conn.commit()
         return cursor.lastrowid
@@ -47,7 +59,8 @@ def addCoralImage(imagePath: str, uploadBy: int, coralID: int) -> int | None:
     Alias for createCoralImage. Creates a new coral image record.
     
     Args:
-        imagePath: Relative path to the uploaded image file
+        imagePath: Cloudinary URL or relative path to the uploaded image file
+                   Example: "https://res.cloudinary.com/.../abc123.jpg"
         uploadBy: ID of the user who uploaded the image
         coralID: ID of the coral this image belongs to
     
@@ -55,7 +68,6 @@ def addCoralImage(imagePath: str, uploadBy: int, coralID: int) -> int | None:
         The ID of the newly created image record, or None if failed
     """
     return createCoralImage(imagePath, uploadBy, coralID)
-
 
 # ============================================================================
 # 2. READ OPERATIONS (Single Records)
